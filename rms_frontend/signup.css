@@ -1,0 +1,36 @@
+body {
+  font-family: serif;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  height: 400vh;
+}
+
+.h1 {
+  text-align: center;
+}
+.form_container {
+  width: 90%;
+  max-width: 450%;
+  margin: 40px auto;
+
+  background-color: #222;
+  padding: 30px;
+  border-radius: 8px;
+}
+
+form_container h1 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.form_item {
+  margin-bottom: 25px;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
