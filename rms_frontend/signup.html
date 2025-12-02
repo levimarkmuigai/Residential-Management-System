@@ -1,25 +1,28 @@
 <!DOCTYPE html>
-<hmtl>
-<head>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Sign Up </title>
     <link rel = "stylesheet" href = "signup.css"/>
 </head>
 <body> 
-    <div class  = "form_container">
-      <h1>Sign Up</h1>
+    <div class = "form-container">
+      <h1>Create an Account</h1>
         <form>
-        
-            <div class="form_item">
+        <div class = "form-name">
+            <div class="form-item">
                 <label> First Name </label>
                 <input type = "text" id = "firstname" name = "fullname">
             </div>
 
-            <div class="form_item">
+            <div class="form-item">
                 <label> Last Name </label>
                 <input type = "text" id = "lastname" name = "lastname">
             </div>
+        </div>
 
-            <div class="form_item">
+            <div class="form-item">
                 <label> Role </label>
                 <select id  = "roles">
                     <option value = "Landlord"> Landlord</option>
@@ -28,22 +31,22 @@
                 </select> 
             </div>
 
-            <div class="form_item">
+            <div class="form-item">
                 <label> Email Address </label>
                 <input type = "text" id = "email" name = "email">
             </div>
 
-            <div class="form_item">
+            <div class="form-item">
                 <label> Phone Number </label>
-                <input type = "text" id = phonenumber" name = "phonenumber">
+                <input type = "text" id = "phonenumber" name = "phonenumber">
             </div>
 
-            <div class = "form_item">
+            <div class = "form-item">
                 <label> Password </label>
-                <input type = "text" id = "password" name = "password">
+                <input type = "password" id = "password" name = "password">
             </div>
 
-            <button type = "submit"> Sign up </button>
+            <button type = "submit"> CREATE </button>
         </form>
     </div>
 </body>
