@@ -1,6 +1,6 @@
 body {
   font-family: "Times New Roman", serif;
-  background-color: black;
+  background-color: #121212;
   color: white;
 
   display: flex;
@@ -65,3 +65,4 @@ button {
   font-weight: bold;
   letter-spacing: 1px;
 }
+
