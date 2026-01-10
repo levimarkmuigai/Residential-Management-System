@@ -2,7 +2,7 @@ use postgres::{Client, NoTls};
 
 use std::env;
 
-use crate::user::User;
+use crate::user::{UserAuth, User, Id, Password, Role};
 
 pub fn get_client() -> Result<Client, postgres::Error> {
 
@@ -31,4 +31,20 @@ pub fn insert_user(user: User) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+pub fn find_user_by_email(email: String) -> Option<UserAuth> {
+
+    let mut client = get_client().map_err(|e| e.to_string()).ok()?;
+
+    let sql_statement = "
+        SELECT id,role,password FROM users WHERE email = $1";
+
+    let result = client.query_opt(sql_statement, &[&email]).unwrap();
+
+    result.map(|row| UserAuth {
+        id: Id(row.get("id")),
+        role: Role{ raw: row.get("role")},
+        password: Password{ raw: row.get("password")},
+    })
 }

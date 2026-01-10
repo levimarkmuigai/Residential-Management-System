@@ -280,3 +280,24 @@ impl User {
         })
     }
 }
+
+pub struct UserAuth {
+    pub id: Id,
+    pub role: Role,
+    pub password: Password,
+}
+
+impl UserAuth {
+
+    pub fn new(id: Uuid, role: String,password: String) -> Result<UserAuth, String> {
+        let u_id = Id::from(id);
+        let u_role = Role::try_from(role)?;
+        let u_password = Password::try_from(password)?;
+
+        Ok(Self {
+            id: u_id,
+            role: u_role,
+            password: u_password,
+        })
+    }
+}
