@@ -1,21 +1,34 @@
 use uuid::Uuid;
 
-use sha2::{Sha256, Digest};
+use argon2::{
+    password_hash::{
+        rand_core::OsRng,
+        PasswordHasher,
+        SaltString
+    },
+    Argon2
+};
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Id(pub Uuid);
+pub struct Id{
+    pub id: Uuid,
+}
 
 impl Id {
 
     pub fn generate_id() -> Uuid {
         Uuid::new_v4()
     }
+
+    pub fn value(&self)  -> &Uuid {
+        &self.id
+    }
 }
 
 impl From<Uuid> for Id {
 
     fn from(id: Uuid) -> Id {
-        Id(id)
+        Id{id}
     }
 }
 
@@ -202,15 +215,16 @@ impl Password {
 
         let unhashed_password = password_trimmed.to_string();
 
-        let mut hasher = Sha256::new();
+        let salt = SaltString::generate(&mut OsRng);
 
-        hasher.update(unhashed_password);
+        let argon2 = Argon2::default();
 
-        let hashed_password = hasher.finalize();
+        let hashed_password = argon2
+            .hash_password(unhashed_password.as_bytes(), &salt)
+            .map_err(|e| e.to_string())?
+            .to_string();
 
-        let hashed_string_password = format!("{:x}", hashed_password);
-
-        Ok(hashed_string_password)
+        Ok(hashed_password)
 
     }
 
@@ -229,7 +243,7 @@ impl TryFrom<String> for Password {
             return Err("Password is empty");
         }
 
-        Ok(Self{ 
+        Ok(Self{
             raw: value_trimmed.to_string(),
         })
     }
@@ -281,22 +295,20 @@ impl User {
     }
 }
 
-pub struct UserAuth {
-    pub id: Id,
-    pub role: Role,
+#[derive(Debug, PartialEq, Clone)]
+pub struct UserCredentials {
+    pub email: Email,
     pub password: Password,
 }
 
-impl UserAuth {
+impl UserCredentials {
 
-    pub fn new(id: Uuid, role: String,password: String) -> Result<UserAuth, String> {
-        let u_id = Id::from(id);
-        let u_role = Role::try_from(role)?;
+    pub fn new(email: String,password: String) -> Result<UserCredentials, String> {
+        let u_email = Email::try_from(email)?;
         let u_password = Password::try_from(password)?;
 
         Ok(Self {
-            id: u_id,
-            role: u_role,
+            email: u_email,
             password: u_password,
         })
     }

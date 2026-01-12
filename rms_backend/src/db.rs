@@ -2,7 +2,17 @@ use postgres::{Client, NoTls};
 
 use std::env;
 
-use crate::user::{UserAuth, User, Id, Password, Role};
+use crate::user::{
+    UserCredentials,
+    User,
+    Id,
+    FirstName,
+    LastName,
+    PhoneNumber,
+    Email,
+    Password,
+    Role
+};
 
 pub fn get_client() -> Result<Client, postgres::Error> {
 
@@ -21,7 +31,7 @@ pub fn insert_user(user: User) -> Result<(), String> {
         VALUES($1, $2, $3, $4, $5, $6, $7)";
 
     client.execute(sql_statement, &[
-        &user.id.0,
+        &user.id.value(),
         &user.role.value(),
         &user.first_name.value(),
         &user.last_name.value(),
@@ -33,18 +43,38 @@ pub fn insert_user(user: User) -> Result<(), String> {
     Ok(())
 }
 
-pub fn find_user_by_email(email: String) -> Option<UserAuth> {
+pub fn find_user(email: &str) -> Option<User> {
 
     let mut client = get_client().map_err(|e| e.to_string()).ok()?;
 
     let sql_statement = "
-        SELECT id,role,password FROM users WHERE email = $1";
+        SELECT id,role,first_name, last_name,email,phone_number,password FROM users WHERE id = $1";
 
     let result = client.query_opt(sql_statement, &[&email]).unwrap();
 
-    result.map(|row| UserAuth {
-        id: Id(row.get("id")),
+    result.map(|row| User {
+        id: Id{ id: row.get("id")},
         role: Role{ raw: row.get("role")},
+        first_name: FirstName{ raw: row.get("first_name")},
+        last_name: LastName{ raw: row.get("last_name")},
+        email: Email{ raw: row.get("email")},
+        phone_number: PhoneNumber{ raw: row.get("phone_number")},
         password: Password{ raw: row.get("password")},
     })
 }
+
+pub fn find_user_credentials(email: &str) -> Option<UserCredentials> {
+
+    let mut client = get_client().map_err(|e| e.to_string()).ok()?;
+
+    let sql_statement = "
+        SELECT email,password FROM users WHERE email = $1";
+
+    let result = client.query_opt(sql_statement, &[&email]).unwrap();
+
+    result.map(|row| UserCredentials {
+        email: Email{ raw: row.get("email")},
+        password: Password{ raw: row.get("password")},
+    })
+}
+

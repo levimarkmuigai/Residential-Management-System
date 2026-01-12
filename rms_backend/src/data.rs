@@ -1,4 +1,5 @@
-use crate::user::{ User,Id};
+use crate::user::{ User,Id, UserCredentials};
+use uuid::Uuid;
 
 pub fn extract_data(text: String) -> Result<User, String> {
 
@@ -9,7 +10,7 @@ pub fn extract_data(text: String) -> Result<User, String> {
     let mut phone_number_buffer = String::new();
     let mut password_buffer = String::new();
 
-    if let Some((header, body)) = text.split_once("\r\n\r\n") {
+    if let Some((_header, body)) = text.split_once("\r\n\r\n") {
 
         for pair in body.split("&") {
 
@@ -60,5 +61,39 @@ pub fn extract_data(text: String) -> Result<User, String> {
         email_buffer,
         phone_number_buffer,
         password_buffer,
+    )?)
+}
+
+
+pub fn extract_credentials(text: String) -> Result<UserCredentials, String> {
+
+    let mut email_buffer = String::new();
+    let mut password_buffer = String::new();
+
+    if let Some((_header, body)) = text.split_once("\r\n\r\n") {
+        for pair in body.split("&") {
+
+            if let Some((key, value)) = pair.split_once("=") {
+
+                match key {
+                    "email" => {
+                      email_buffer = value.to_string();
+                    }
+
+                    "password" => {
+                        password_buffer = value.to_string();
+                    }
+
+                    _ => {}
+                }
+            }
+        }
+    } else {
+        return Err("Failed to split header and body".to_string());
+    }
+
+    Ok(UserCredentials::new(
+            email_buffer,
+            password_buffer
     )?)
 }
