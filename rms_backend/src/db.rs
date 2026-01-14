@@ -3,7 +3,6 @@ use postgres::{Client, NoTls};
 use std::env;
 
 use crate::user::{
-    UserCredentials,
     User,
     Id,
     FirstName,
@@ -48,7 +47,7 @@ pub fn find_user(email: &str) -> Option<User> {
     let mut client = get_client().map_err(|e| e.to_string()).ok()?;
 
     let sql_statement = "
-        SELECT id,role,first_name, last_name,email,phone_number,password FROM users WHERE id = $1";
+        SELECT id,role,first_name, last_name,email,phone_number,password FROM users WHERE email = $1";
 
     let result = client.query_opt(sql_statement, &[&email]).unwrap();
 
@@ -59,21 +58,6 @@ pub fn find_user(email: &str) -> Option<User> {
         last_name: LastName{ raw: row.get("last_name")},
         email: Email{ raw: row.get("email")},
         phone_number: PhoneNumber{ raw: row.get("phone_number")},
-        password: Password{ raw: row.get("password")},
-    })
-}
-
-pub fn find_user_credentials(email: &str) -> Option<UserCredentials> {
-
-    let mut client = get_client().map_err(|e| e.to_string()).ok()?;
-
-    let sql_statement = "
-        SELECT email,password FROM users WHERE email = $1";
-
-    let result = client.query_opt(sql_statement, &[&email]).unwrap();
-
-    result.map(|row| UserCredentials {
-        email: Email{ raw: row.get("email")},
         password: Password{ raw: row.get("password")},
     })
 }

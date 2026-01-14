@@ -40,10 +40,6 @@ pub struct FirstName{
 
 impl FirstName {
 
-    pub fn new(raw: String) -> Self {
-        Self { raw }
-    }
-
     pub fn value(&self) -> &str {
 
         &self.raw
@@ -72,10 +68,6 @@ pub struct LastName{
 }
 
 impl LastName {
-
-    pub fn new(raw: String) -> Self {
-        Self { raw }
-    }
 
     pub fn value(&self) -> &str {
 
@@ -106,10 +98,6 @@ pub struct Role{
 
 impl Role {
 
-    pub fn new(raw: String) -> Self {
-        Self { raw }
-    }
-
     pub fn value(&self) -> &str {
 
         &self.raw
@@ -139,10 +127,6 @@ pub struct Email{
 
 impl Email {
 
-    pub fn new(raw: String) -> Self {
-        Self { raw }
-    }
-
     pub fn value(&self) -> &str {
 
         &self.raw
@@ -171,10 +155,6 @@ pub struct PhoneNumber {
 }
 
 impl PhoneNumber {
-
-    pub fn new(raw: String) -> Self {
-        Self { raw }
-    }
 
     pub fn value(&self) -> &str {
 

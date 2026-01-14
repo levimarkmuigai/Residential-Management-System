@@ -3,6 +3,7 @@ mod db;
 mod data;
 mod user;
 mod login;
+mod signup;
 
 use dotenvy;
 

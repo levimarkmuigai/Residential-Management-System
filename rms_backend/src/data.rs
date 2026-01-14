@@ -1,5 +1,4 @@
 use crate::user::{ User,Id, UserCredentials};
-use uuid::Uuid;
 
 pub fn extract_data(text: String) -> Result<User, String> {
 
@@ -30,7 +29,7 @@ pub fn extract_data(text: String) -> Result<User, String> {
                     }
 
                     "email" => {
-                        email_buffer = value.to_string();
+                        email_buffer = value.to_string().replace("%40", "@");
                     }
 
                     "phone_number" => {
@@ -77,7 +76,7 @@ pub fn extract_credentials(text: String) -> Result<UserCredentials, String> {
 
                 match key {
                     "email" => {
-                      email_buffer = value.to_string();
+                      email_buffer = value.to_string().replace("%40", "@");
                     }
 
                     "password" => {
