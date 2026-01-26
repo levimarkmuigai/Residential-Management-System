@@ -19,7 +19,7 @@ pub fn start_server() {
 
                     thread::spawn(|| {
                         handle_connection(stream);
-                    }); 
+                    });
                 }
                 Err(e) => println!("Connection failed: {}", e),
             }
@@ -87,7 +87,7 @@ fn handle_connection(mut stream: TcpStream) {
             }
         }
         Err(e) => println!("Failed to established connection: {}", e),
-    } 
+    }
 }
 
 fn handle_registration(request_text: String, stream: &mut TcpStream) {

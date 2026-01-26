@@ -1,4 +1,4 @@
-mod http;
+mod server;
 mod db;
 mod data;
 mod user;
@@ -13,7 +13,7 @@ fn main() {
 
     println!("Starting server, Welcome to RMS BACKEND");
 
-    http::start_server();
+    server::start_server();
 
     println!("Hello Rust");
 }

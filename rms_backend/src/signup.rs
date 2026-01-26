@@ -20,7 +20,7 @@ pub fn signup(user: User) -> Result<String, String> {
         }
         Err(e) => {
 
-            println!("Failed to inser user. {}", e);
+            println!("Failed to insert user. {}", e);
             Err("Database insertion failed".to_string())
         }
     }
