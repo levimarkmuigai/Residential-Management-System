@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caretaker Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/caretaker.css"/>
+</head>
+<body>
+
+  <div class="container">
+    <header class="stats-header">
+      <div class="stats-item">URGENT: <span class="red-text">--</span></div>
+      <div class="stats-item">TASKS: --</div>
+      <div class="stats-item">VACANT: --</div>
+      <a href="#profile-section" class="profile-link" id="profile-link">PROFILE</a>
+    </header>
+
+    <h2>PENDING ACTIONS</h2>
+
+    <main class="action-feed">
+
+      <div class="action-card maintenance">
+        <div class="card-info">
+          <span class="badge priority-badge">POWER</span>
+          <p>--</p> <small>--</small> </div>
+        <form action="http://127.0.0.1:8080/fix_request" method="POST">
+          <input type="hidden" name="id" value=""> <button type="submit" class="fix-btn">FIXED</button>
+        </form>
+      </div>
+
+      <div class="action-card vacation">
+        <div class="card-info">
+          <span class="badge status-badge">VALID</span>
+          <p>--</p> <small>--</small> </div>
+        <div class="btn-group">
+          <form action="http://127.0.0.1:8080/approve_v" method="POST">
+            <input type="hidden" name="id" value="">
+            <button type="submit" class="btn-blue">APPROVE</button>
+          </form>
+          <form action="http://127.0.0.1:8080/reject_v" method="POST">
+            <input type="hidden" name="id" value="">
+            <button type="submit" class="btn-red">REJECT</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <section class="profile-panel hidden" id="profile-section">
+      <h3>UPDATE MY DETAILS</h3>
+      <form action="http://127.0.0.1:8080/update_caretaker" method="POST">
+        <div class="grid-field">
+          <div class="field">
+            <label>NAME</label>
+            <input type="text" name="name" value="">
+          </div>
+          <div class="field">
+            <label>PHONE</label>
+            <input type="text" name="phone_number" value="">
+          </div>
+          <div class="field">
+            <label>NATIONAL ID</label>
+            <input type="text" name="n_id" value="">
+          </div>
+        </div>
+        <button type="submit" class="btn-profile">UPDATE</button>
+      </form>
+    </section>
+  </div>
+
+    <script>
+      const link = document.getElementById('profile-link');
+      const section = document.getElementById('profile-section');
+
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        section.classList.toggle('hidden');
+
+        link.innerText = section.classList.contains('hidden') ? 'PROFILE' : 'CLOSE';
+      });
+    </script>
+</body>
+</html>
+

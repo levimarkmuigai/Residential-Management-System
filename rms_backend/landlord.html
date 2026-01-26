@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Landlord Dashboard </title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/landlord.css"/>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="main-title">Welcome To Your Dashboard</h1>
+    <div class="cards">
+
+      <div class="card buildings">
+        <div class="card-content">
+          <h3>Total Buildings</h3>
+          <h1 id="building-count">--</h1>
+          <button id="show-form-button" class="form-btn">REGISTER</button>
+        </div>
+      </div>
+
+      <div class="card units">
+        <div class="card-content">
+          <h3>Occupied Units</h3>
+            <h1 class="unit-count">--</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="register-box hidden" id="register-container">
+      <h3>REGISTER BUILDING</h3>
+
+      <form action="http://127.0.0.1:8080/register_b" method="POST" id="register-form">
+        <div class="field">
+          <label>BUILDING NAME</label>
+          <input type="text" name="building">
+        </div>
+
+        <div class="field">
+          <label>TOTAL UNITS</label>
+          <input type="number" placeholder="00" name="units">
+        </div>
+      <button type="submit" class="submit-btn">ADD TO SYSTEM</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('show-form-button');
+    const formContainer = document.getElementById('register-container');
+
+    btn.addEventListener('click', () => {
+      formContainer.classList.toggle('hidden');
+      btn.innerText = formContainer.classList.contains('hidden') ? 'REGISTER' : 'CLOSE';
+    });
+  </script>
+</body>
+</html>
+
