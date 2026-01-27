@@ -284,12 +284,10 @@ pub struct UserCredentials {
 impl UserCredentials {
 
     pub fn new(email: String,password: String) -> Result<UserCredentials, String> {
-        let u_email = Email::try_from(email)?;
-        let u_password = Password::try_from(password)?;
 
         Ok(Self {
-            email: u_email,
-            password: u_password,
+            email: Email::try_from(email)?,
+            password: Password::try_from(password)?,
         })
     }
 }

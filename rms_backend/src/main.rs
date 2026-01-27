@@ -1,6 +1,6 @@
 mod server;
 mod db;
-mod data;
+mod extractor;
 mod user;
 mod login;
 mod signup;
@@ -13,7 +13,7 @@ fn main() {
 
     println!("Starting server, Welcome to RMS BACKEND");
 
-    server::start_server();
+    server::run_server();
 
     println!("Hello Rust");
 }

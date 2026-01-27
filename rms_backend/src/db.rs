@@ -26,7 +26,7 @@ pub fn insert_user(user: User) -> Result<(), String> {
     let mut client = get_client().map_err(|e| e.to_string())?;
 
     let sql_statement = "
-    INSERT INTO users (id, role, first_name, last_name, email, phone_number, password)
+    INSERT INTO users (id, role, first_name, last_name, email, phone_number, password_hash)
         VALUES($1, $2, $3, $4, $5, $6, $7)";
 
     client.execute(sql_statement, &[
@@ -47,7 +47,7 @@ pub fn find_user(email: &str) -> Option<User> {
     let mut client = get_client().map_err(|e| e.to_string()).ok()?;
 
     let sql_statement = "
-        SELECT id,role,first_name, last_name,email,phone_number,password FROM users WHERE email = $1";
+        SELECT id,role,first_name, last_name,email,phone_number,password_hash FROM users WHERE email = $1";
 
     let result = client.query_opt(sql_statement, &[&email]).unwrap();
 
@@ -58,7 +58,7 @@ pub fn find_user(email: &str) -> Option<User> {
         last_name: LastName{ raw: row.get("last_name")},
         email: Email{ raw: row.get("email")},
         phone_number: PhoneNumber{ raw: row.get("phone_number")},
-        password: Password{ raw: row.get("password")},
+        password: Password{ raw: row.get("password_hash")},
     })
 }
 

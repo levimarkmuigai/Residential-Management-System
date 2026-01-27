@@ -1,147 +1,134 @@
 use std::net::{TcpListener, TcpStream};
-use std::io::{Read, Write};
-use std::thread;
-use crate::data;
-use crate::login;
-use crate::signup;
+use std::io::{BufReader, prelude::*};
+use std::fs;
 
-pub fn start_server() {
+use crate::signup;
+use crate::login;
+use crate::extractor;
+
+pub fn run_server() {
 
     let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
 
-    println!("Listerner running on port 8080");
+    println!("Server is running on port 8080...");
 
-    loop {
-        for stream in listener.incoming() {
-            match stream {
-                Ok(stream) => {
-                    println!("New connection established.");
+    for stream in listener.incoming() {
+        println!("Connection Established.");
 
-                    thread::spawn(|| {
-                        handle_connection(stream);
-                    });
-                }
-                Err(e) => println!("Connection failed: {}", e),
-            }
-        }
+        handle_connection(stream.unwrap());
     }
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let mut buffer = [0; 4096];
+    let mut buf_reader = BufReader::new(&mut stream);
 
-    match stream.read(&mut buffer) {
-        Ok(read_bytes) => {
-            if read_bytes == 0 {
-                return;
-            }
+    let header: Vec<String> = buf_reader
+        .by_ref()
+        .lines()
+        .map(|result| result.unwrap())
+        .take_while(|line| !line.is_empty())
+        .collect();
 
-            let request_text = String::from_utf8_lossy(&buffer[..read_bytes]).to_string();
-            println!("Recieved request: \n{}", request_text);
+    let content_length = header.iter()
+        .find(|line| line.to_lowercase().starts_with("content-length:"))
+        .and_then(|line| line.split_once(":"))
+        .and_then(|(_, value)| value.trim().parse::<usize>().ok())
+        .unwrap_or(0);
 
-            let first_line = request_text.lines().next().unwrap_or("");
-            let mut parts = first_line.split_whitespace();
+    let mut body_bytes = vec![0; content_length];
+    buf_reader.read_exact(&mut body_bytes).unwrap();
 
-            let method = parts.next().unwrap_or("");
-            let path = parts.next().unwrap_or("");
+    let body_str = String::from_utf8_lossy(&body_bytes);
 
-            match (method, path) {
-                ("POST", "/register") => {
-                    println!("Handling registration");
-                    handle_registration(request_text, &mut stream);
-                }
+    let request_line = header.get(0).map(|s| s.as_str()).unwrap_or("");
+    println!("Here is your request_line: '{}'", request_line);
 
-                ("POST", "/login") => {
-                    println!("Handling login");
-                    handle_login(request_text, &mut stream);
-                }
+    match request_line {
 
-                ("GET", "/landlord") => {
-                    println!("Routing to Landlord dashboard.");
-
-                    let response = "HTTP/1.1 200 OK\r\n\r\nWelcome Landlord";
-
-                    stream.write_all(response.as_bytes()).unwrap();
-                }
-
-                ("GET", "/caretaker") => {
-                    println!("Routing to Caretaker dashboard.");
-
-                    let response = "HTTP/1.1 200 Ok\r\n\r\nWelcime Caretaker";
-
-                    stream.write_all(response.as_bytes()).unwrap();
-                }
-
-                ("GET", "tenant") => {
-                    println!("Routing to Tenant dashboard.");
-
-                    let _response = "HTTP/1.1 200 Ok\r\n\r\nWelcome Tenant";
-                }
-
-                _ => {
-                    println!("404 sent for path: {}", path);
-                    let response = "HTTP/1.1 404 Not Found\r\n\r\nUnknown path";
-
-                    stream.write_all(response.as_bytes()).unwrap();
-                }
-            }
+        line if line.starts_with("POST /signup") => {
+            println!("Route: Signup being handled...");
+            handle_signup(body_str.to_string(), &mut stream);
         }
-        Err(e) => println!("Failed to established connection: {}", e),
+
+        line if line.starts_with("POST /login") => {
+            println!("Request recieved, authenticating user.");
+            handle_auth(body_str.to_string(), &mut stream);
+        }
+
+        line if line.starts_with("GET /login") => {
+            println!("Route: Login being handled...");
+            serve_static_file("login.html", "text/html", stream);
+        }
+
+        line if line.starts_with("GET /landlord") => {
+            println!("Route: Welcome Landlord......");
+            serve_static_file("landlord.html", "text/html", stream);
+        }
+
+        line if line.starts_with("GET /caretaker") => {
+            println!("Routing: Welcome User");
+            serve_static_file("caretaker.html", "text/html", stream);
+        }
+
+        line if line.contains(".css") => {
+            let filename = request_line
+                .split_whitespace()
+                .nth(1)
+                .unwrap_or("")
+                .trim_start_matches('/');
+            serve_static_file(filename, "text/css", stream);
+        }
+
+        _ => {
+            println!("Route: Not Found (404)");
+        }
     }
 }
 
-fn handle_registration(request_text: String, stream: &mut TcpStream) {
-    match data::extract_data(request_text) {
-        Ok(user) => {
+fn handle_signup(text: String, stream: &mut TcpStream) {
 
-            println!("User extracted {:?}", user);
-            
-            match signup::signup(user) {
-                Ok(redirect) => {
+    print!("Handling... {}", text);
 
-                    println!("Sign up Success! Redirecting to: {}", redirect);
-                    stream.write_all(redirect.as_bytes()).unwrap();
-                }
-                Err(_) => {
+    let user = extractor::extract_data(text).unwrap();
+    println!("User Extracted: \n{:?}", user);
 
-                    let response = "HTTP/1.1 500 Error\r\n\r\nDatabase Error";
-                    stream.write_all(response.as_bytes()).unwrap();
-                }
-            }
+    let response = signup::signup(user);
+    println!("Successfully signed up. Redirecting to login...");
 
-        },
-        Err(_) => {
+    stream.write_all(response.unwrap().as_bytes()).unwrap();
+}
 
-            let response = "HTTP/1.1 400 Bad Request\r\n\r\nInvalid data";
+fn handle_auth(text: String, stream: &mut TcpStream) {
+
+    println!("Handling... {}", text);
+
+    let user_result = extractor::data_for_auth(text);
+
+    if let Ok(user) = user_result.as_ref() {
+        println!("User Extracted: {:?}", user);
+    }
+
+    match login::auth(user_result.unwrap()) {
+        Ok(response) => {
+            println!("Successfully logged in: {}", response);
             stream.write_all(response.as_bytes()).unwrap();
         }
+        Err(e) => {
+            println!("Login failed: {}", e);
+        }
     }
 }
 
-fn handle_login(request_text: String, stream: &mut TcpStream) {
-    match data::extract_credentials(request_text) {
-        Ok(credentials) => {
+fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream) {
+    match fs::read_to_string(file_path) {
+        Ok(content) => {
+            let response = format!("HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\n\r\n{}",
+                content.len(), content);
 
-            println!("Authentication data extracted {:?}", credentials);
-
-            let email = credentials.email.raw.trim();
-            let password = credentials.password.raw.trim();
-
-            match login::login(&email,&password) {
-                Ok(redirect) => {
-                    println!("Login Success! Redirecting to: {}", redirect);
-                    stream.write_all(redirect.as_bytes()).unwrap();
-                }
-                Err(_) => {
-
-                    let response = "HTTP/1.1 401 Unauthoried\r\n\r\nInvalid Credentials";
-                    stream.write_all(response.as_bytes()).unwrap();
-                }
-            }
-        },
+            stream.write_all(response.as_bytes()).unwrap();
+        }
         Err(_) => {
-
-            let response = "HTTP/1.1 400 Bad Request\r\n\r\nInvalid data";
+            let response = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
             stream.write_all(response.as_bytes()).unwrap();
         }
     }
