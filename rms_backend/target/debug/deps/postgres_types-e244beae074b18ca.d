@@ -1,0 +1,10 @@
+/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/postgres_types-e244beae074b18ca.d: /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/lib.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/uuid_1.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/pg_lsn.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/private.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/special.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/type_gen.rs
+
+/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/libpostgres_types-e244beae074b18ca.rmeta: /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/lib.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/uuid_1.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/pg_lsn.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/private.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/special.rs /home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/type_gen.rs
+
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/lib.rs:
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/uuid_1.rs:
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/pg_lsn.rs:
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/private.rs:
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/special.rs:
+/home/levi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/postgres-types-0.2.11/src/type_gen.rs:

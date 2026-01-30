@@ -2,24 +2,50 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{BufReader, prelude::*};
 use std::fs;
 
-use crate::signup;
+use crate::{building, signup};
 use crate::login;
 use crate::extractor;
+use crate::landlord;
+
+use uuid::Uuid;
+
+use std::collections::HashMap;
+use std::sync::{Arc,Mutex};
+
+pub type SessionStore = Arc<Mutex<HashMap<String, Uuid>>>;
 
 pub fn run_server() {
 
-    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
+    let listener = TcpListener::bind("127.0.0.1:8080")
+        .unwrap();
+
+    let sessions: SessionStore = Arc::new(Mutex::new(HashMap::new()));
 
     println!("Server is running on port 8080...");
 
     for stream in listener.incoming() {
+        let sessions_clone = Arc::clone(&sessions);
+
         println!("Connection Established.");
 
-        handle_connection(stream.unwrap());
+        handle_connection(stream.unwrap(), sessions_clone);
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+pub fn get_session_id(request: &str) -> Option<String> {
+    for line in request.lines() {
+        if line.starts_with("Cookie:") && line.contains("session_id=") {
+            return line.split("session_id=")
+                .nth(1)
+                .map(|s| s.split(";").next().unwrap_or(s)
+                    .to_string());
+        }
+    }
+
+    None
+}
+
+fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
     let mut buf_reader = BufReader::new(&mut stream);
 
     let header: Vec<String> = buf_reader
@@ -28,6 +54,11 @@ fn handle_connection(mut stream: TcpStream) {
         .map(|result| result.unwrap())
         .take_while(|line| !line.is_empty())
         .collect();
+
+    let full_headers = header.join("\n");
+    let current_session_id = get_session_id(&full_headers);
+
+    println!("Users session id: {:?}", current_session_id);
 
     let content_length = header.iter()
         .find(|line| line.to_lowercase().starts_with("content-length:"))
@@ -52,7 +83,19 @@ fn handle_connection(mut stream: TcpStream) {
 
         line if line.starts_with("POST /login") => {
             println!("Request recieved, authenticating user.");
-            handle_auth(body_str.to_string(), &mut stream);
+            handle_auth(body_str.to_string(), &mut stream, sessions);
+        }
+
+        line if line.starts_with("POST /update_landlord") => {
+            println!("Request recieved, updating profile.");
+            handle_landlord(body_str.to_string(), &mut stream,
+            sessions, &full_headers);
+        }
+
+        line if line.starts_with("POST /register_b") => {
+            println!("Request recieved, registering building.");
+            handle_building(body_str.to_string(), &mut stream,
+            sessions, &full_headers);
         }
 
         line if line.starts_with("GET /login") => {
@@ -98,7 +141,8 @@ fn handle_signup(text: String, stream: &mut TcpStream) {
     stream.write_all(response.unwrap().as_bytes()).unwrap();
 }
 
-fn handle_auth(text: String, stream: &mut TcpStream) {
+fn handle_auth(text: String, stream: &mut TcpStream,
+    sessions: SessionStore) {
 
     println!("Handling... {}", text);
 
@@ -108,7 +152,7 @@ fn handle_auth(text: String, stream: &mut TcpStream) {
         println!("User Extracted: {:?}", user);
     }
 
-    match login::auth(user_result.unwrap()) {
+    match login::auth(user_result.unwrap(), &sessions) {
         Ok(response) => {
             println!("Successfully logged in: {}", response);
             stream.write_all(response.as_bytes()).unwrap();
@@ -119,10 +163,49 @@ fn handle_auth(text: String, stream: &mut TcpStream) {
     }
 }
 
+fn handle_landlord(text: String, stream: &mut TcpStream,
+    sessions: SessionStore, raw_request: &str) {
+    println!("Handling Landlord Profile Update {}", text);
+
+    let mut landlord_dto = extractor::extract_landlord(text).unwrap();
+
+    let session_id = get_session_id(raw_request);
+
+    landlord_dto.session_id = session_id;
+
+    match landlord::update_landlord(landlord_dto, &sessions) {
+        Ok(response) => stream.write_all(response.as_bytes())
+            .unwrap(),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+fn handle_building(text: String, stream: &mut TcpStream,
+    sessions: SessionStore, raw_request: &str) {
+    println!("Handling...{}, registration", text);
+
+    let mut building_dto = extractor::extract_building(text).unwrap();
+    println!("Building Extracted...{:?}", building_dto);
+
+    let session_id = get_session_id(raw_request);
+    building_dto.session_id = session_id;
+
+    print!("Building has recieved session Id: {:?}", building_dto);
+
+    match building::insert_building(building_dto, &sessions) {
+        Ok(response) => stream.write_all(response.as_bytes())
+            .unwrap(),
+        Err(e) => println!("Error: {:?}", e),
+    }
+}
+
+
 fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream) {
     match fs::read_to_string(file_path) {
         Ok(content) => {
-            let response = format!("HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\n\r\n{}",
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: 
+                {content_type}\r\nContent-Length: {}\r\n\r\n{}",
                 content.len(), content);
 
             stream.write_all(response.as_bytes()).unwrap();

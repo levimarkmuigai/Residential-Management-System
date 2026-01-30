@@ -1,12 +1,14 @@
 use crate::db;
-use crate::user::UserCredentials;
+use crate::user::user::UserCredentials;
+use crate::server::SessionStore;
 
 use argon2::{
     password_hash::{PasswordHash, PasswordVerifier},
     Argon2
 };
+use uuid::Uuid;
 
-pub fn auth(user: UserCredentials) -> Result<String, String> {
+pub fn auth(user: UserCredentials, sessions: &SessionStore) -> Result<String, String> {
 
     let email = user.email.value();
     let password_attempt = user.password.value();
@@ -26,6 +28,8 @@ pub fn auth(user: UserCredentials) -> Result<String, String> {
 
     println!("Login Successful for: {}", email);
 
+    let session_key = generate_session(sessions, *user.id.value());
+
     let role = user.role.value();
 
     let location = match role {
@@ -37,10 +41,20 @@ pub fn auth(user: UserCredentials) -> Result<String, String> {
 
     let status_line = "HTTP/1.1 303 See Other";
 
-    let response = format!("{status_line}\r\nLocation: {location}\r\n\r\n");
+    let response = format!(
+        "{status_line}\r\nLocation: {location}\r\nSet-Cookie: session_id={session_key}; HttpOnly; Path=/; SameSite=Lax\r\n\r\n");
 
     println!("{}", response);
 
     Ok(response)
+}
+
+fn generate_session(sessions: &SessionStore, user_id: Uuid) -> String {
+    let session_key = Uuid::new_v4().to_string();
+
+    let mut lock = sessions.lock().unwrap();
+    lock.insert(session_key.clone(), user_id);
+
+    session_key
 }
 

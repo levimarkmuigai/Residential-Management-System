@@ -1,4 +1,9 @@
-use crate::user::{ User,Id, UserCredentials};
+use crate::user::{ 
+    fields::Id,
+    user::{User,UserCredentials}
+};
+use crate::landlord::LandlordDTO;
+use crate::building::BuildingDTO;
 
 pub fn extract_data(text: String) -> Result<User, String> {
 
@@ -46,7 +51,8 @@ pub fn extract_data(text: String) -> Result<User, String> {
 
         }
 
-    let user_id = Id::generate_id();
+    let user_id = Id::new();
+
     Ok(User::new(
         user_id,
         first_name_buffer,
@@ -86,3 +92,52 @@ pub fn data_for_auth(text: String) -> Result<UserCredentials, String> {
             password_buffer
     )?)
 }
+
+pub fn extract_landlord(text: String) -> Result<LandlordDTO, String> {
+    let mut business_name = String::new();
+
+    for pair in text.split("&") {
+        if let Some((key, value)) = pair.split_once("=") {
+            match key {
+                "name" => {
+                    business_name = value.to_string().replace('+', " ");
+                    println!("{} was extracted.", business_name);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    Ok(LandlordDTO::new(business_name)?)
+
+}
+
+pub fn extract_building(text: String) -> Result<BuildingDTO, String> {
+
+    let mut name = String::new();
+    let mut units = String::new();
+
+    for pair in text.split("&") {
+        if let Some((key, value)) = pair.split_once("=") {
+            match key {
+                "building" => {
+                    name = value.to_string();
+                }
+                "units" => {
+                    units = value.to_string();
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let number_of_units: i32 = units.parse().unwrap();
+    let id = Id::new();
+
+    Ok(BuildingDTO::new(
+        id,
+        name,
+        number_of_units,
+    )?)
+}
+

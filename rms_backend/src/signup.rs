@@ -1,5 +1,5 @@
 use crate::db;
-use crate::user::User;
+use crate::user::user::User;
 
 pub fn signup(user: User) -> Result<String, String> {
 
