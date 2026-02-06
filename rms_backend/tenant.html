@@ -14,7 +14,113 @@
 
 <body>
     <div class="container">
+        <header class="status-bar">
+            <div class="stat-item">
+                <div class="status-dot green"></div> STATUS: <span>--</span>
+            </div>
 
+            <div class="stat-item">
+                <div class="status-dot yellow"></div>REQS: <span>--</span>
+            </div>
+        </header>
+
+        <h1 class="main-title">WELCOME TO YOUR DASHBOARD</h1>
+
+        <div class="action-hub">
+            <button type="button" default="PAY RENT" class="hub-btn" 
+                onclick="toggleForm('rent-box', this)">
+                PAY RENT
+            </button>
+            <button type="button" default="REPAIR REQ" class="hub-btn" 
+                onclick="toggleForm('maint-box', this)">
+                MAINTENANCE
+            </button>
+            <button type="button" default="VACATE" class="hub-btn" 
+                onclick="toggleForm('vacate-box', this)">
+                VACATE
+            </button>
+        </div>
+
+        <main class="form-container">
+
+            <section id="rent-box" class="action-box hidden">
+                <h3>INITIALIZE PAYMENT</h3>
+                <form action="http://127.0.0.1:8080/pay" method="POST">
+                    <label>AMOUT</label>
+                    <input type="number" name="amount" 
+                    placeholder="0.00" required>
+                    
+                    <label>PHONE NUMBER</label>
+                    <input type="number" name="phone" 
+                    placeholder="2547XXXXXXXX" required>
+
+                    <button type="submit"> PAY NOW</button>
+                </form>
+            </section>
+
+            <section id="maint-box" class="action-box hidden">
+                <h3>NEW REQUEST</h3>
+                <form action="http://127.0.0.1:8080/request" method="POST">
+                    <label>CATEGORY</label>
+                    <select name="issue_type">
+                        <option value="general">General</option>
+                        <option value="water">Water</option>
+                        <option value="power">Power</option>
+                    </select>
+
+                    <label>DESCRIPTION</label>
+                    <input type="text" name="desc" placeholder="What's wrong?" required>
+
+                    <button type="submit">SEND</button>
+                </form>
+            </section>
+
+            <section id="vacate-box" class="action-box hidden">
+                <h3>VACATION NOTICE</h3>
+                <form action="http://127.0.0.1:8080/vacate" method="POST">
+                    <label>MOVE-OUT DATE</label>
+                    <input type="date" name="exit_date">
+
+                    <p class="warning">* 30-DAY NOTICE REQUIRED</p>
+
+                    <button type="submit">SUBMIT NOTICE</button>
+                </form>
+            </section>
+
+        </main>
+
+        <section class="status-zone">
+            <h3>REQUEST STATUS</h3>
+            <div class="status-card">
+                <div class="card-left">
+                    <span class="issue-id">#--</span>
+                    <span class="issue-name">--</span>
+                </div>
+                <span class="status-badge">--</span>
+            </div>
+            <p class="empty-msg hidden">NO ACTIVE REQUEST FOUND</p>
+        </section>
     </div>
+
+    <script>
+        function toggleForm(targetId, btn) {
+
+            const targetBox = document.getElementById(targetId);
+            const allBoxes = document.querySelectorAll('.action-box');
+            const allBtns = document.querySelectorAll('.hub-btn');
+
+            if (!targetBox.classList.contains('hidden')) {
+                targetBox.classList.add('hidden');
+                btn.innerText = btn.getAttribute('default');
+            } else {
+                allBoxes.forEach(box => box.classList.add('hidden'));
+                allBtns.forEach(b => b.innerText = b.getAttribute('default'));
+                
+                targetBox.classList.remove('hidden');
+                btn.innerText = "CLOSE";
+            }
+        }
+    </script>
 </body>
 </html>
+

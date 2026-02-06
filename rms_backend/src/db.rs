@@ -4,9 +4,11 @@ use uuid::Uuid;
 
 use std::env;
 
-use crate::building::Building;
+use crate::building::{Building, BuildingRow};
 use crate::landlord::Landlord;
 
+use crate::notice::Notice;
+use crate::request::Request;
 use crate::user::{
     fields::{
     Id,
@@ -31,12 +33,16 @@ pub fn insert_user(user: User) -> Result<(), String> {
 
     let mut client = get_client().map_err(|e| e.to_string())?;
 
+    let mut transaction = client.transaction()
+        .map_err(|e| e.to_string())?;
+
+
     let sql_statement = "
     INSERT INTO users (id, role, first_name, last_name,
         email, phone_number, password_hash)
         VALUES($1, $2, $3, $4, $5, $6, $7)";
 
-    client.execute(sql_statement, &[
+    transaction.execute(sql_statement, &[
         &user.id.value(),
         &user.role.value(),
         &user.first_name.value(),
@@ -45,6 +51,41 @@ pub fn insert_user(user: User) -> Result<(), String> {
         &user.phone_number.value(),
         &user.password.value()])
     .map_err(|e| e.to_string())?;
+
+    let role = user.role.value();
+    let id = user.id.value();
+
+    match role {
+        "Landlord" => {
+            transaction.execute("
+                INSERT INTO landlords(user_id, business_name) VALUES($1)", 
+                &[&id, &"Pending Update"]
+                )
+        }
+
+        "Caretaker" => {
+            transaction.execute("
+                INSERT INTO caretakers(user_id, national_id) VALUES($1,$2)", 
+                &[&id, &format!("TEMP-{}", id.to_string()[..8]
+                    .to_uppercase())]
+                )
+        }
+
+        "Tenant" => {
+            transaction.execute("
+                INSERT INTO tenants(user_id, payment_status) VALUES($1, $2)", 
+                &[&id, &"up-to-date"]
+                )
+        }
+
+        _ => Ok(0),
+    }.map_err(|e| {
+
+        eprint!("CRITICLA DATABASE ERROR: {:?}", e);
+        format!("Role initialization failed: {}", e)
+    })?;
+
+    transaction.commit().map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -76,7 +117,7 @@ pub fn update_landlord(landlord: Landlord) -> Result<(), String> {
     let mut client = get_client().map_err(|e| e.to_string())?;
 
     let sql_statement = "INSERT INTO landlords(user_id, business_name)
-        VALUEs($1, $2)";
+        VALUES($1, $2)";
 
     client.execute(sql_statement,
         &[&landlord.id.value() as &(dyn ToSql + Sync),
@@ -127,5 +168,143 @@ pub fn insert_buidling(building: Building) -> Result<(), String> {
 
     transaction.commit().map_err(|e| e.to_string())?;
     Ok(())
+}
+
+pub fn insert_request(request: Request) -> Result<(),String> {
+
+    let mut client = get_client().unwrap();
+
+    let mut transaction = client.transaction().unwrap();
+
+    let tenant_id = request.tenant_id.value();
+
+    let fetch_statement = 
+        "SELECT id FROM units WHERE tenant_id = $1 LIMIT 1";
+
+    let row = transaction
+        .query_opt(fetch_statement, &[&tenant_id])
+        .map_err(|e| e.to_string())?;
+
+    let unit_id: Uuid = row
+        .map(|r| r.get(0))
+        .ok_or("Row empty!Unit id not found!")?;
+
+    let sql_statement = "
+        INSERT INTO maintenance_requests
+        (id,tenant_id,unit_id,issue_type,description,priority,status)
+         VALUES($1,$2,$3,$4,$5,$6,$7)";
+
+    transaction.execute(sql_statement, &[
+        &request.id.value(),
+        &request.tenant_id.value(),
+        &unit_id,
+        &request.issue_type,
+        &request.description,
+        &request.priority,
+        &request.status,
+    ]).map_err(|e| e.to_string())?;
+
+    transaction.commit().map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+pub fn insert_notice(notice: Notice) -> Result<(), String> {
+    let mut client = get_client().unwrap();
+
+    let sql_statement = "INSERT INTO vacation_notices
+        (id,tenant_id,notice_date,status) 
+        VALUES($1,$2,$3,$4)";
+
+    client.execute(sql_statement, &[
+        &notice.id.value(),
+        &notice.tenant_id.value(),
+        &notice.date,
+        &notice.status
+    ]).map_err(|e| format!("DB error {:?}", e))?;
+
+    Ok(())
+}
+
+pub fn get_building_stats(landlord_id: Uuid) 
+    -> Result<Vec<BuildingRow>, String> {
+
+        let mut client = get_client().unwrap();
+
+        let sql = "
+            SELECT 
+            b.id,
+            b.name,
+            b.total_units_count,
+            COUNT(u.id) FILTER(WHERE u.is_occupied = true) AS occupied_units
+                FROM buildings b
+                LEFT JOIN units u ON b.id = u.building_id
+                WHERE b.landlord_id = $1
+                GROUP BY b.id, b.name, b.total_units_count
+                ORDER BY b.name ASC";
+
+        let rows = client.query(sql, &[&landlord_id])
+            .map_err(|e| {
+                eprintln!("POSTGRES ERROR: {:?}", e);
+                e.to_string()
+            })?;
+
+        println!("DEBUG: Found {} buildings for landlord {}", rows.len(), landlord_id);
+
+        let mut building_list = Vec::new();
+
+        for row in rows {
+            building_list.push(BuildingRow {
+                id: row.get(0),
+                name: row.get(1),
+                units: row.get(2),
+                occupied_units: row.get::<_,i64>(3) as i32,
+            });
+        }
+
+        Ok(building_list)
+}
+
+pub fn get_caretakers() -> Result<Vec<(Uuid, String)>, String> {
+    let mut client  = get_client().unwrap();
+
+    let sql = "
+        SELECT u.id, u.first_name
+        FROM users u
+        INNER JOIN caretakers c ON u.id = c.user_id
+        LEFT JOIN buildings b ON u.id = b.caretaker_id
+        WHERE u.role = 'Caretaker' AND b.id is NULL";
+
+    let rows = client.query(sql, &[]).map_err(|e| {
+        eprint!("DEBUG: DB ERROR {:?}", e);
+        e.to_string()
+    })?;
+
+    let mut caretakers = Vec::new();
+
+    for row in rows {
+        let id = row.get(0);
+        let name = row.get(1);
+
+        caretakers.push((id, name));
+    }
+
+    Ok(caretakers)
+}
+
+pub fn assign_building(caretaker_id: Uuid, building_id: Uuid) 
+    -> Result<(),String> {
+
+        let mut client = get_client().unwrap();
+
+        let sql_statement = 
+            "UPDATE buildings SET caretaker_id = $1 WHERE id = $2";
+
+        client.execute(sql_statement, &[
+            &caretaker_id,
+            &building_id
+        ]).map_err(|e| e.to_string())?;
+
+        Ok(())
 }
 

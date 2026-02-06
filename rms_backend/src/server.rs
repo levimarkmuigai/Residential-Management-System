@@ -2,7 +2,7 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{BufReader, prelude::*};
 use std::fs;
 
-use crate::{building, signup};
+use crate::{building,request, signup, notice};
 use crate::login;
 use crate::extractor;
 use crate::landlord;
@@ -98,6 +98,18 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
             sessions, &full_headers);
         }
 
+        line if line.starts_with("POST /request") => {
+            println!("Request recieved, sending request.");
+            handle_request(body_str.to_string(), &mut stream, sessions,
+                &full_headers);
+            }
+
+        line if line.starts_with("POST /vacate") => {
+            println!("Vacation notice recieved. Wait for approval.");
+            handle_vacate(body_str.to_string(), &mut stream, 
+                sessions, &full_headers);
+        }
+
         line if line.starts_with("GET /login") => {
             println!("Route: Login being handled...");
             serve_static_file("login.html", "text/html", stream);
@@ -105,12 +117,48 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
 
         line if line.starts_with("GET /landlord") => {
             println!("Route: Welcome Landlord......");
+
+            if let Some(sid) = current_session_id {
+                let lock = sessions.lock()
+                    .unwrap();
+
+                if let Some(landlord_uuid) = lock.get(&sid) {
+                    let rows = building::manage_buildings
+                        (*landlord_uuid).unwrap_or_else(|e| 
+                            { 
+                                println!("DEBUG: Error building table: {}", e); 
+                                String::new()
+                            });
+
+
+                    let mut html = fs::read_to_string
+                        ("landlord.html").unwrap();
+
+                    html = html.replace(" {{BUILDING_ROWS}}", &rows);
+
+                    let response = format!("HTTP/1.1 200 OK
+                        \r\nContent-Type: text/html\r\nContent-Length: {}
+                        \r\n\r\n{}",html.len(), html
+                        );
+
+                    stream.write_all(response.as_bytes()).unwrap();
+                } else {
+                    stream.write_all
+                        (b"HTTP/1.1 303 See Other\r\nLocation: /login
+                         \r\n\r\n").unwrap();
+                }
+            }
             serve_static_file("landlord.html", "text/html", stream);
         }
 
         line if line.starts_with("GET /caretaker") => {
-            println!("Routing: Welcome User");
+            println!("Routing: Welcome Caretaker...");
             serve_static_file("caretaker.html", "text/html", stream);
+        }
+
+        line if line.contains("GET /tenant") => {
+            println!("Routing: Welcome Tenant...");
+            serve_static_file("tenant.html", "text/html", stream);
         }
 
         line if line.contains(".css") => {
@@ -199,6 +247,42 @@ fn handle_building(text: String, stream: &mut TcpStream,
     }
 }
 
+fn handle_request(text: String, stream: &mut TcpStream, 
+    sessions: SessionStore, raw_request: &str) {
+    println!("Request {} recieved.", text);
+
+    let mut request_dto = extractor::extract_request(text);
+
+    let session_id = get_session_id(raw_request);
+    request_dto.session_id = session_id;
+
+    println!("Request {:?} recieved: ", request_dto);
+
+    match request::send_request(request_dto, &sessions) {
+        Ok(response) => stream.write_all(response.as_bytes())
+            .unwrap(),
+        Err(e) => println!("Error: {:?}", e),
+    }
+}
+
+fn handle_vacate(text: String, stream: &mut TcpStream, 
+    sessions: SessionStore, full_header: &str) {
+    println!("Handling, {}", text);
+
+    let mut notice_dto = extractor::extract_notice(text);
+
+    let session_id = get_session_id(full_header);
+
+    notice_dto.session_id = session_id;
+
+    println!("DTO ready {:?}", notice_dto);
+
+   match notice::send_notice(notice_dto, &sessions) {
+       Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
+       Err(e) => println!("Error in notice module: {:?}", e),
+   }
+
+}
 
 fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream) {
     match fs::read_to_string(file_path) {

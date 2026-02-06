@@ -1,55 +1,30 @@
 <!DOCTYPE html>
 <html>
-
 <head lang="en">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Landlord Dashboard </title>
-    <link 
-    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-    rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/landlord.css" />
 </head>
-
 <body>
     <div class="container">
         <h1 class="main-title">
-            Welcome To Your Dashboard
-            <a href="#profile-section" 
-                class="profile-link" id="profile-link">PROFILE</a>
+            DASHBOARD
+            <a href="#profile-section" class="profile-link" id="profile-link">PROFILE</a>
         </h1>
 
-        <div class="cards">
-
-            <div class="card buildings">
-                <div class="card-content">
-                    <h3>Total Buildings</h3>
-                    <h1 id="building-count">--</h1>
-                    <button id="show-form-button" class="form-btn">
-                        REGISTER
-                    </button>
-                </div>
-            </div>
-
-            <div class="card units">
-                <div class="card-content">
-                    <h3>Occupied Units</h3>
-                    <h1 class="unit-count">--</h1>
-                </div>
-            </div>
+        <div class="action-bar">
+            <button id="show-form-button" class="form-btn">REGISTER NEW BUILDING</button>
         </div>
 
         <div class="register-box hidden" id="register-container">
             <h3>REGISTER BUILDING</h3>
-
-            <form action="http://127.0.0.1:8080/register_b"
-                method="POST" id="register-form">
+            <form action="/register_b" method="POST" id="register-form">
                 <div class="field">
                     <label>BUILDING NAME</label>
                     <input type="text" name="building">
                 </div>
-
                 <div class="field">
                     <label>TOTAL UNITS</label>
                     <input type="number" placeholder="00" name="units">
@@ -58,44 +33,51 @@
             </form>
         </div>
 
+        <div class="card management-section">
+            <h3>BUILDING INVENTORY</h3>
+            <table class="management-table">
+                <thead>
+                    <tr>
+                        <th>BUILDING</th>
+                        <th>UNITS (OCCUPIED/TOTAL)</th>
+                        <th>CARETAKER</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody class="management-body">
+                    {{BUILDING_ROWS}}
+                </tbody>
+            </table>
+        </div>
+
         <section class="profile-panel hidden" id="profile-section">
-            <h3>UPDATE MY DETAILS</h3>
-            <form action="http://127.0.0.1:8080/update_landlord" method="POST">
-                <div class="grid-field">
-                    <div class="field">
-                        <label>Business NAME</label>
-                        <input type="text" name="name" value="">
-                    </div>
+            <h3>UPDATE DETAILS</h3>
+            <form action="/update_landlord" method="POST">
+                <div class="field">
+                    <label>BUSINESS NAME</label>
+                    <input type="text" name="name">
                 </div>
                 <button type="submit" class="submit-btn">UPDATE</button>
             </form>
         </section>
-
     </div>
 
     <script>
         const btn = document.getElementById('show-form-button');
         const formContainer = document.getElementById('register-container');
-
         btn.addEventListener('click', () => {
             formContainer.classList.toggle('hidden');
-            btn.innerText = formContainer.classList.contains('hidden') ?
-                'REGISTER' : 'CLOSE';
+            btn.innerText = formContainer.classList.contains('hidden') ? 'REGISTER NEW BUILDING' : 'CLOSE';
         });
 
         const link = document.getElementById('profile-link');
         const section = document.getElementById('profile-section');
-
         link.addEventListener('click', (e) => {
             e.preventDefault();
             section.classList.toggle('hidden');
-
-            link.innerText = section.classList.contains('hidden') ?
-                'PROFILE' : 'CLOSE';
+            link.innerText = section.classList.contains('hidden') ? 'PROFILE' : 'CLOSE';
         });
-
     </script>
 </body>
-
 </html>
 

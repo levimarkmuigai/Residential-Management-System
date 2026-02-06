@@ -113,3 +113,53 @@ pub fn insert_building(
     Ok(response)
 }
 
+#[derive(Debug,PartialEq,Clone)]
+pub struct BuildingRow {
+    pub id: Uuid,
+    pub name: String,
+    pub units: i32,
+    pub occupied_units: i32,
+}
+
+pub fn manage_buildings(lanlord_id: Uuid) -> Result<String,String> {
+    let buildings = db::get_building_stats(lanlord_id)
+        .map_err(|e| e.to_string())?;
+    
+    let caretakers = db::get_caretakers()
+        .map_err(|e| e.to_string())?;
+
+    let mut rows_html = String::new();
+
+    let mut option_html = String::from(
+        "<option value=''>Select Caretaker</option>");
+
+    for (id,name) in caretakers {
+        option_html.push_str(
+            &format!("<option value='{}'>{}</option>", id, name));
+    }
+
+    for b in buildings {
+        rows_html.push_str(&format!(
+        "<tr>
+        <td>{name}</td>
+        <td>{occ}/{total}</td>
+        <td>
+        <select name='caretaker_id' form='form-{id}'>
+        {options}
+        </select>
+        </td>
+        <td> <form action='/assign_caretaker/{id}' method='POST'>
+        <button type='submit' class='submit-btn mini'>ASSIGN</button></form>
+        </td>
+        </tr>",
+        name = b.name,
+        occ = b.occupied_units,
+        total = b.units,
+        id = b.id,
+        options = option_html
+        ));
+    }
+
+    Ok(rows_html)
+}
+

@@ -1,7 +1,7 @@
-use crate::user::{ 
+use crate::{notice::NoticeDto, request::RequestDto, user::{ 
     fields::Id,
     user::{User,UserCredentials}
-};
+}};
 use crate::landlord::LandlordDTO;
 use crate::building::BuildingDTO;
 
@@ -141,3 +141,56 @@ pub fn extract_building(text: String) -> Result<BuildingDTO, String> {
     )?)
 }
 
+
+pub fn extract_request(text: String) -> RequestDto {
+
+    let mut issue_type = String::new();
+    let mut description = String::new();
+
+    for pair in text.split("&") {
+        if let Some((key,value)) =
+            pair.split_once("=") {
+                match key {
+                    "issue_type" => {
+                        issue_type = value.to_string()
+                            .replace("+", " ");
+                    }
+                    "desc" => {
+                        description = value.to_string();
+                    }
+                    _ => {}
+                }
+        }
+    }
+
+    let id = Id::new();
+
+     let request = RequestDto::new(
+         id,
+         issue_type,
+         description
+         );
+
+     request
+}
+
+pub fn extract_notice(text: String) -> NoticeDto {
+
+    let mut date = String::new();
+
+    if let Some((key,value)) = text.split_once("=") {
+        match key {
+            "exit_date" => {
+                date = value.to_string();
+            }
+
+            _ => {}
+        }
+    }
+
+    let id  = Id::new();
+
+    let notice_dto = NoticeDto::new(id, date);
+
+    notice_dto
+}
