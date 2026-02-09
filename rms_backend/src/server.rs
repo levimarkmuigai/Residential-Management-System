@@ -2,7 +2,7 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{BufReader, prelude::*};
 use std::fs;
 
-use crate::{building,request, signup, notice};
+use crate::{building, caretaker, db, notice, request, signup};
 use crate::login;
 use crate::extractor;
 use crate::landlord;
@@ -123,18 +123,15 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
                     .unwrap();
 
                 if let Some(landlord_uuid) = lock.get(&sid) {
-                    let rows = building::manage_buildings
-                        (*landlord_uuid).unwrap_or_else(|e| 
-                            { 
-                                println!("DEBUG: Error building table: {}", e); 
-                                String::new()
-                            });
-
+                    let (rows, c_options, b_options) = landlord::manage_buildings
+                        (*landlord_uuid).unwrap();
 
                     let mut html = fs::read_to_string
                         ("landlord.html").unwrap();
 
                     html = html.replace(" {{BUILDING_ROWS}}", &rows);
+                    html = html.replace("{{CARETAKER_OPTIONS}}", &c_options);
+                    html = html.replace("{{BUILDINGS}}", &b_options);
 
                     let response = format!("HTTP/1.1 200 OK
                         \r\nContent-Type: text/html\r\nContent-Length: {}
@@ -151,8 +148,65 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
             serve_static_file("landlord.html", "text/html", stream);
         }
 
+        line if line.starts_with("POST /landlord/assign_caretaker") => {
+            println!("DEBUG: Received Body -> '{}'", body_str);
+
+            match extractor::extract_caretaker_assign(body_str.to_string()) {
+                Ok((building_id, caretaker_id)) => {
+                    if let Ok(_) = db::assign_caretaker_to_building(building_id, caretaker_id) {
+                        let response = "HTTP/1.1 303 See Other\r\nLocation: /landlord\r\n\r\n";
+                        stream.write_all(response.as_bytes()).unwrap();
+                    }
+                },
+                Err(e) => println!("Extraction failed: {}", e),
+            }
+        }
+
+        line if line.starts_with("POST /caretaker/assign_tenant") => {
+
+            println!("DEBUG: {}", body_str.to_string());
+
+            match extractor::extract_tenant_assign(body_str.to_string()){
+                Ok((unit_id,tenant_id)) => {
+
+                    if let Ok(_) = db::assign_tenant_to_unit(unit_id, tenant_id) {
+                        let response = "HTTP/1.1 303 See Other\r\nLocation: /caretaker\r\n\r\n";
+                        stream.write_all(response.as_bytes()).unwrap();
+                    }
+                },
+                Err(e) => println!("Extraction failed: {}", e),
+            }
+        }
+
         line if line.starts_with("GET /caretaker") => {
+
             println!("Routing: Welcome Caretaker...");
+
+            if let Some(sid) = current_session_id {
+                let lock = sessions.lock()
+                    .unwrap();
+
+                if let Some(caretaker_uuid) = lock.get(&sid) {
+
+                    match caretaker::build_dashboard(
+                        *caretaker_uuid) {
+                        Ok(html) => {
+                            let response = format!(
+                                "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
+                                html.len(), html
+                                );
+                            stream.write_all(response.as_bytes()).unwrap();
+                            stream.flush().unwrap();
+                        },
+                        Err(e) => {
+                            println!("Error loading caretaker dash: {}", e);
+                            stream.write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n").unwrap();
+                            stream.flush().unwrap();
+                        }
+                    }
+                }
+            }
+
             serve_static_file("caretaker.html", "text/html", stream);
         }
 

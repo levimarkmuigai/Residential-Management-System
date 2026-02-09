@@ -1,8 +1,8 @@
+use crate::server::SessionStore;
 use crate::{
     db,
     user::fields::{Id, Name},
 };
-use crate::server::SessionStore;
 
 use uuid::Uuid;
 
@@ -78,8 +78,7 @@ pub fn insert_building(
     let name = building_dto.name;
     let units = building_dto.units;
 
-    let session_id = building_dto.session_id
-        .ok_or("No session id found")?;
+    let session_id = building_dto.session_id.ok_or("No session id found")?;
 
     let landlord_uuid = {
         let lock = session.lock().unwrap();
@@ -105,15 +104,18 @@ pub fn insert_building(
     let status_line = "HTTP/1.1 303 See Other";
 
     let location = "Location: /landlord";
-    
-    let response = format!("{}\r\n{}\r\nContent-length: 0\r\nConnection: close\r\n\r\n", status_line, location);
+
+    let response = format!(
+        "{}\r\n{}\r\nContent-length: 0\r\nConnection: close\r\n\r\n",
+        status_line, location
+    );
 
     println!("Response: {}", response);
 
     Ok(response)
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BuildingRow {
     pub id: Uuid,
     pub name: String,
@@ -121,43 +123,35 @@ pub struct BuildingRow {
     pub occupied_units: i32,
 }
 
-pub fn manage_buildings(lanlord_id: Uuid) -> Result<String,String> {
-    let buildings = db::get_building_stats(lanlord_id)
-        .map_err(|e| e.to_string())?;
-    
-    let caretakers = db::get_caretakers()
-        .map_err(|e| e.to_string())?;
+pub fn manage_buildings(lanlord_id: Uuid) -> Result<String, String> {
+    let buildings = db::get_building_stats(lanlord_id).map_err(|e| e.to_string())?;
+
+    let caretakers = db::get_caretakers().map_err(|e| e.to_string())?;
 
     let mut rows_html = String::new();
 
-    let mut option_html = String::from(
-        "<option value=''>Select Caretaker</option>");
+    let mut option_html = String::from("<option value=''>Select Caretaker</option>");
 
-    for (id,name) in caretakers {
-        option_html.push_str(
-            &format!("<option value='{}'>{}</option>", id, name));
+    for (id, name) in caretakers {
+        option_html.push_str(&format!("<option value='{}'>{}</option>", id, name));
     }
 
     for b in buildings {
+
+        let caretaker_name= db::get_building_caretaker(b.id)?;
+
+        let display_name = caretaker_name.unwrap_or_else(|| "NOT ASSIGNED".to_string());
+        
         rows_html.push_str(&format!(
-        "<tr>
-        <td>{name}</td>
-        <td>{occ}/{total}</td>
-        <td>
-        <select name='caretaker_id' form='form-{id}'>
-        {options}
-        </select>
-        </td>
-        <td> <form action='/assign_caretaker/{id}' method='POST'>
-        <button type='submit' class='submit-btn mini'>ASSIGN</button></form>
-        </td>
-        </tr>",
-        name = b.name,
-        occ = b.occupied_units,
-        total = b.units,
-        id = b.id,
-        options = option_html
-        ));
+                "<tr>
+                <td>{name}</td>
+                <td class='text-center'>{occ}/{total}</td>
+                <td class='text-right'>{display_name}</td>
+                </tr>",
+                name = b.name,
+                occ = b.occupied_units,
+                total = b.units,
+                ));
     }
 
     Ok(rows_html)

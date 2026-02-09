@@ -7,6 +7,7 @@ mod extractor;
 mod login;
 mod signup;
 mod landlord;
+mod caretaker;
 mod tenant;
 mod request;
 mod notice;

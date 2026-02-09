@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::{notice::NoticeDto, request::RequestDto, user::{ 
     fields::Id,
     user::{User,UserCredentials}
@@ -194,3 +196,64 @@ pub fn extract_notice(text: String) -> NoticeDto {
 
     notice_dto
 }
+
+pub fn extract_tenant_assign(text: String) -> Result<(Uuid,Uuid), String> {
+
+    let mut unit_id = None;
+    let mut tenant_id = None;
+
+    for pair in text.split("&") {
+        if let Some((key,value)) = pair
+            .split_once("=") { 
+                match key {
+                    "unit_id" => {
+                        unit_id = Some(Uuid::parse_str(value)
+                            .map_err(|_| "Invalid unit Uuid")?);
+                    }
+
+                    "tenant_id" => {
+                        tenant_id = Some(Uuid::parse_str(value)
+                            .map_err(|_| "Invalid tenant Uuid")?);
+                    }
+
+                    _ => {}
+            }
+        }
+    }
+
+    match (unit_id, tenant_id) {
+        (Some(u), Some(t)) => Ok((u,t)),
+        _ => Err("Missing on or more values".to_string()),
+    }
+}
+
+pub fn extract_caretaker_assign(text: String) -> Result<(Uuid,Uuid),String> {
+
+    let mut building_id = None;
+    let mut caretaker_id = None;
+
+    for pair in text.split("&") {
+        if let Some((key,value)) = 
+            pair.split_once("=") {
+                match key {
+                    "building_id" => {
+                        building_id = Some(Uuid::parse_str(value)
+                            .map_err(|_| "Invalid building id")?);
+                    }
+
+                    "caretaker_id" => {
+                        caretaker_id = Some(Uuid::parse_str(value)
+                            .map_err(|_| "Invalid caretaker id")?);
+                    }
+
+                    _ => {}
+                }
+        }
+    }
+
+    match (building_id, caretaker_id) {
+        (Some(b), Some(c)) => Ok((b,c)),
+        _ => Err("Missing one or more values".to_string()),
+    }
+}
+

@@ -17,23 +17,47 @@
       <a href="#profile-section" class="profile-link" id="profile-link">PROFILE</a>
     </header>
 
+    <h2>ADMINISTRATION</h2>
+    <div class="management-section">
+        <h3>TENANT MOVE-IN</h3>
+        <form action="/caretaker/assign_tenant" method="POST">
+            <div class="field">
+                <label>AVAILABLE TENANTS</label>
+                <select name="tenant_id">
+                    {{TENANT_OPTIONS}}
+                </select>
+            </div>
+
+            <div class="field">
+                <label>VACANT UNITS (IN YOUR BUILDING)</label>
+                <select name="unit_id">
+                    {{VACANT_UNITS}}
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn">ASSIGN TENANT TO UNIT</button>
+        </form>
+    </div>
+
     <h2>PENDING ACTIONS</h2>
 
     <main class="action-feed">
-
       <div class="action-card maintenance">
         <div class="card-info">
           <span class="badge priority-badge">POWER</span>
-          <p>--</p> <small>--</small> </div>
+          <p>--</p> <small>--</small> 
+        </div>
         <form action="http://127.0.0.1:8080/fix_request" method="POST">
-          <input type="hidden" name="id" value=""> <button type="submit" class="fix-btn">FIXED</button>
+          <input type="hidden" name="id" value=""> 
+          <button type="submit" class="fix-btn">FIXED</button>
         </form>
       </div>
 
       <div class="action-card vacation">
         <div class="card-info">
           <span class="badge status-badge">VALID</span>
-          <p>--</p> <small>--</small> </div>
+          <p>--</p> <small>--</small> 
+        </div>
         <div class="btn-group">
           <form action="http://127.0.0.1:8080/approve_v" method="POST">
             <input type="hidden" name="id" value="">
@@ -69,17 +93,15 @@
     </section>
   </div>
 
-    <script>
-      const link = document.getElementById('profile-link');
-      const section = document.getElementById('profile-section');
+  <script>
+    const link = document.getElementById('profile-link');
+    const section = document.getElementById('profile-section');
 
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        section.classList.toggle('hidden');
-
-        link.innerText = section.classList.contains('hidden') ? 'PROFILE' : 'CLOSE';
-      });
-    </script>
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      section.classList.toggle('hidden');
+      link.innerText = section.classList.contains('hidden') ? 'PROFILE' : 'CLOSE';
+    });
+  </script>
 </body>
 </html>
-

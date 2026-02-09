@@ -3,9 +3,10 @@ body {
   color: #fff;
   font-family: 'Press Start 2P', cursive;
   margin: 0;
-  padding: 20px;
+  padding: 40px 20px;
   display: flex;
   justify-content: center;
+  line-height: 1.6;
 }
 
 .container {
@@ -26,56 +27,58 @@ body {
   font-size: 10px;
 }
 
-.red-text { color: #ff0000}
-.profile-link: { 
-  color: #0000ff;
-  font-size: 8px;
+h2 {
+  font-size: 14px;
+  margin: 40px 0 20px 0;
+  color: #20c997;
+  text-transform: uppercase;
 }
 
-.action-card {
+.action-card, 
+.management-section, 
+.profile-panel {
   background: #fff;
   color: #000;
   border: 4px solid #000;
   box-shadow: 6px 6px 0px #000;
-  padding: 15px;
+  padding: 20px;
   margin-bottom: 25px;
+}
+
+.action-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-
 .card-info p {
-  margin: 10px 0;
+  margin: 5px 0;
   font-size: 12px;
+  font-weight: bold;
 }
 
 .card-info small {
   font-size: 8px;
   color: #555;
   display: block;
+  margin-top: 5px;
+}
+
+.management-section h3, 
+.profile-panel h3 {
+  font-size: 12px;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 4px solid #000;
 }
 
 .badge {
   display: inline-block;
-  padding: 4px;
+  padding: 4px 8px;
   border: 2px solid #000;
   font-size: 8px;
   background: #eee;
-}
-
-.btn-group {
-  display: flex;
-  gap: 10px;
-}
-
-.profile-panel {
-  margin-top: 60px;
-  background: #fff;
-  color: #000;
-  padding: 25px;
-  border: 4px solid #000;
-  box-shadow: 8px 8px 0px #000;
+  margin-bottom: 5px;
 }
 
 .grid-field {
@@ -85,38 +88,53 @@ body {
   margin-bottom: 20px;
 }
 
+.field {
+  margin-bottom: 20px;
+}
+
 .field label {
   display: block;
   font-size: 8px;
   margin-bottom: 10px;
+  color: #000;
 }
 
-input {
+input, select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border: 4px solid #000;
   font-family: 'Press Start 2P', cursive;
   font-size: 10px;
   box-sizing: border-box;
+  background-color: #fff;
+  outline: none;
 }
 
-.hidden {
-  display: none;
-}
 button {
   font-family: 'Press Start 2P', cursive;
   border: 4px solid #000;
   cursor: pointer;
-  padding: 10px;
+  padding: 12px;
   font-size: 8px;
+  text-transform: uppercase;
+  transition: transform 0.1s;
+}
+
+button:active {
+  transform: translate(2px, 2px);
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
 }
 
 .fix-btn { background: #20c997; color: #fff; }
 .btn-blue { background: #3498db; color: #fff; }
 .btn-red { background: #e74c3c; color: #fff; }
-.btn-profile { width: 100%; background: #000; color: #fff; }
+.btn-profile, .submit-btn { width: 100%; background: #000; color: #fff; }
 
-button:active {
-  transform: translateY(2px);
-}
+.red-text { color: #ff0000; }
+.profile-link { color: #0000ff; font-size: 8px; text-decoration: none; border-bottom: 2px solid #0000ff; }
+.hidden { display: none !important; }
 

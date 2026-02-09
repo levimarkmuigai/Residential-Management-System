@@ -292,19 +292,133 @@ pub fn get_caretakers() -> Result<Vec<(Uuid, String)>, String> {
     Ok(caretakers)
 }
 
-pub fn assign_building(caretaker_id: Uuid, building_id: Uuid) 
+pub fn get_caretakers_building(caretaker_id: Uuid) -> Result<Uuid, String> {
+    let mut client = get_client().unwrap();
+
+    let sql = "
+        SELECT id FROM buildings WHERE caretaker_id = $1 LIMIT 1
+        ";
+
+    let row = client.query_opt(sql, &[&caretaker_id])
+        .map_err(|e| e.to_string())?;
+    
+    match row {
+        Some(result) => Ok(result.get(0)),
+        None => Err("No building found for the caretaker".to_string()),
+    }
+}
+
+pub fn assign_caretaker_to_building(building_id: Uuid, caretaker_id: Uuid,) 
+    -> Result<(), String> {
+        let mut client = get_client().unwrap();
+
+        let sql = "
+            UPDATE buildings
+            SET caretaker_id = $1
+            WHERE id = $2
+            ";
+
+        client.execute(sql, &[&caretaker_id, &building_id])
+            .map_err(|e| { 
+                eprintln!("ERROR INSERTIMG CARETAKER: {:?}", e); 
+                e.to_string()
+            })?;
+
+        Ok(())
+}
+
+pub fn assign_tenant_to_unit(unit_id: Uuid, tenant_id: Uuid) 
     -> Result<(),String> {
 
         let mut client = get_client().unwrap();
 
-        let sql_statement = 
-            "UPDATE buildings SET caretaker_id = $1 WHERE id = $2";
+        let sql = "
+            UPDATE units
+            SET tenant_id = $1, is_occupied = true
+            WHERE id = $2
+            ";
 
-        client.execute(sql_statement, &[
-            &caretaker_id,
-            &building_id
-        ]).map_err(|e| e.to_string())?;
+        client.execute(sql, &[&tenant_id, &unit_id ])
+            .map_err(|e| e.to_string())?;
 
         Ok(())
+}
+
+pub fn get_unassigned_tenant() -> Result<Vec<(Uuid,String)>,String> {
+
+    let mut client = get_client().unwrap();
+
+    let sql = "
+        SELECT u.id, u.first_name
+        FROM users u
+        INNER JOIN tenants t ON u.id = t.user_id
+        LEFT JOIN units un ON u.id = un.tenant_id
+        WHERE un.id is NULL
+        ";
+
+    let rows = client.query(sql, &[])
+        .map_err(|e| e.to_string())?;
+
+    let mut  unassigned_tenants = Vec::new();
+
+    for row in rows {
+        let id = row.get(0);
+        let name = row.get(1);
+
+        unassigned_tenants.push((id, name));
+    }
+
+    Ok(unassigned_tenants)
+}
+
+pub fn get_vacancies(building_id: Uuid) -> Result<Vec<(Uuid, i32)>,String> {
+
+    let mut client = get_client().unwrap();
+
+    let sql = "
+        SELECT id,unit_number FROM units 
+        WHERE building_id = $1 AND is_occupied = false
+        ";
+
+    let rows = client.query(sql, &[&building_id])
+        .map_err(|e| e.to_string())?;
+
+    let mut  vacant_units = Vec::new();
+
+
+    for row in rows {
+        let id = row.get(0);
+        let unit_number = row.get(1);
+
+        vacant_units.push((id,unit_number));
+    }
+
+    Ok(vacant_units)
+}
+
+pub fn get_building_caretaker(building_id: Uuid) -> Result<Option<String>,String> {
+
+    let mut client = get_client().unwrap();
+
+    let sql = "
+        SELECT u.first_name 
+        FROM buildings b
+        LEFT JOIN caretakers c ON b.caretaker_id = c.user_id
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE b.id = $1";
+
+    let result = client.query_opt(sql, &[&building_id]).map_err(|e| {
+        eprintln!("DATABASE ERROR FETCHING CARETAKER ID: {:?}", e);
+        e.to_string()
+    })?;
+
+    match result {
+        Some(row) => {
+            let name = row.get(0);
+
+            Ok(name)
+        },
+        None => { Err("Caretaker id not found".to_string()) }
+    }
 }
 
