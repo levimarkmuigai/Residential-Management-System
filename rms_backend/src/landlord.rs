@@ -78,55 +78,48 @@ pub fn update_landlord(
     Ok(response)
 }
 
-pub fn manage_buildings(lanlord_id: Uuid) 
-    -> Result<(String,String,String), String> {
-
-    let buildings = db::get_building_stats(lanlord_id)
-        .map_err(|e| e.to_string())?;
+pub fn manage_buildings(lanlord_id: Uuid) -> Result<(String, String, String), String> {
+    let buildings = db::get_building_stats(lanlord_id).map_err(|e| e.to_string())?;
 
     let caretakers = db::get_caretakers().map_err(|e| e.to_string())?;
 
     let mut rows_html = String::new();
 
     for b in &buildings {
-
-        let caretaker_name= db::get_building_caretaker(b.id)?;
+        let caretaker_name = db::get_building_caretaker(b.id)?;
 
         let display_name = caretaker_name.unwrap_or_else(|| "NOT ASSIGNED".to_string());
-        
+
         rows_html.push_str(&format!(
-                "<tr>
+            "<tr>
                 <td>{name}</td>
                 <td class='text-center'>{occ}/{total}</td>
                 <td class='text-right'>{display_name}</td>
                 </tr>",
-                name = b.name,
-                occ = b.occupied_units,
-                total = b.units,
-                ));
+            name = b.name,
+            occ = b.occupied_units,
+            total = b.units,
+        ));
     }
 
-    
     let mut caretaker_options = String::new();
 
     for (id, name) in caretakers {
-        caretaker_options
-            .push_str(&format!("
-                    <option value='{}'>{}</option>", 
-                    id, 
-                    name
-                    ));
+        caretaker_options.push_str(&format!(
+            "
+                    <option value='{}'>{}</option>",
+            id, name
+        ));
     }
 
-    let mut building_options =String::new();
+    let mut building_options = String::new();
     for b in &buildings {
-        building_options.push_str(&format!("
-                <option value='{}'>{}</value>", 
-                b.id,
-                b.name
-                ));
+        building_options.push_str(&format!(
+            "
+                <option value='{}'>{}</value>",
+            b.id, b.name
+        ));
     }
 
     Ok((rows_html, caretaker_options, building_options))
 }
-

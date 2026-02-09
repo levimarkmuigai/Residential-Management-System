@@ -17,6 +17,23 @@
       <a href="#profile-section" class="profile-link" id="profile-link">PROFILE</a>
     </header>
 
+     <section class="profile-panel hidden" id="profile-section">
+      <h3> FILL IN WITH CORRECT DETAILS </h3>
+      <form action="/caretaker-form" method="POST">
+        <div class="grid-field">
+          <div class="field">
+            <label>NATIONAL ID</label>
+            <input type="text" name="national_id" value="">
+          </div>
+          <div class="field">
+            <label>HIRED IN</label>
+            <input type="date" name="hired_at">
+          </div>
+        </div>
+        <button type="submit" class="btn-profile">UPDATE</button>
+      </form>
+    </section>
+
     <h2>ADMINISTRATION</h2>
     <div class="management-section">
         <h3>TENANT MOVE-IN</h3>
@@ -69,28 +86,7 @@
           </form>
         </div>
       </div>
-    </main>
-
-    <section class="profile-panel hidden" id="profile-section">
-      <h3>UPDATE MY DETAILS</h3>
-      <form action="http://127.0.0.1:8080/update_caretaker" method="POST">
-        <div class="grid-field">
-          <div class="field">
-            <label>NAME</label>
-            <input type="text" name="name" value="">
-          </div>
-          <div class="field">
-            <label>PHONE</label>
-            <input type="text" name="phone_number" value="">
-          </div>
-          <div class="field">
-            <label>NATIONAL ID</label>
-            <input type="text" name="n_id" value="">
-          </div>
-        </div>
-        <button type="submit" class="btn-profile">UPDATE</button>
-      </form>
-    </section>
+    </main> 
   </div>
 
   <script>

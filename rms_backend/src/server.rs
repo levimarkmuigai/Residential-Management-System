@@ -1,23 +1,21 @@
-use std::net::{TcpListener, TcpStream};
-use std::io::{BufReader, prelude::*};
 use std::fs;
+use std::io::{BufReader, prelude::*};
+use std::net::{TcpListener, TcpStream};
 
-use crate::{building, caretaker, db, notice, request, signup};
-use crate::login;
 use crate::extractor;
 use crate::landlord;
+use crate::login;
+use crate::{building, caretaker, db, notice, request, signup};
 
 use uuid::Uuid;
 
 use std::collections::HashMap;
-use std::sync::{Arc,Mutex};
+use std::sync::{Arc, Mutex};
 
 pub type SessionStore = Arc<Mutex<HashMap<String, Uuid>>>;
 
 pub fn run_server() {
-
-    let listener = TcpListener::bind("127.0.0.1:8080")
-        .unwrap();
+    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
 
     let sessions: SessionStore = Arc::new(Mutex::new(HashMap::new()));
 
@@ -35,10 +33,10 @@ pub fn run_server() {
 pub fn get_session_id(request: &str) -> Option<String> {
     for line in request.lines() {
         if line.starts_with("Cookie:") && line.contains("session_id=") {
-            return line.split("session_id=")
+            return line
+                .split("session_id=")
                 .nth(1)
-                .map(|s| s.split(";").next().unwrap_or(s)
-                    .to_string());
+                .map(|s| s.split(";").next().unwrap_or(s).to_string());
         }
     }
 
@@ -60,7 +58,8 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
 
     println!("Users session id: {:?}", current_session_id);
 
-    let content_length = header.iter()
+    let content_length = header
+        .iter()
         .find(|line| line.to_lowercase().starts_with("content-length:"))
         .and_then(|line| line.split_once(":"))
         .and_then(|(_, value)| value.trim().parse::<usize>().ok())
@@ -75,7 +74,6 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
     println!("Here is your request_line: '{}'", request_line);
 
     match request_line {
-
         line if line.starts_with("POST /signup") => {
             println!("Route: Signup being handled...");
             handle_signup(body_str.to_string(), &mut stream);
@@ -88,26 +86,27 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
 
         line if line.starts_with("POST /update_landlord") => {
             println!("Request recieved, updating profile.");
-            handle_landlord(body_str.to_string(), &mut stream,
-            sessions, &full_headers);
+            handle_landlord(body_str.to_string(), &mut stream, sessions, &full_headers);
         }
 
         line if line.starts_with("POST /register_b") => {
             println!("Request recieved, registering building.");
-            handle_building(body_str.to_string(), &mut stream,
-            sessions, &full_headers);
+            handle_building(body_str.to_string(), &mut stream, sessions, &full_headers);
+        }
+
+        line if line.starts_with("POST /caretaker-form") => {
+            println!("Request recieved, updating caretaker table");
+            handle_caretaker(body_str.to_string(), &mut stream, sessions, &full_headers);
         }
 
         line if line.starts_with("POST /request") => {
             println!("Request recieved, sending request.");
-            handle_request(body_str.to_string(), &mut stream, sessions,
-                &full_headers);
-            }
+            handle_request(body_str.to_string(), &mut stream, sessions, &full_headers);
+        }
 
         line if line.starts_with("POST /vacate") => {
             println!("Vacation notice recieved. Wait for approval.");
-            handle_vacate(body_str.to_string(), &mut stream, 
-                sessions, &full_headers);
+            handle_vacate(body_str.to_string(), &mut stream, sessions, &full_headers);
         }
 
         line if line.starts_with("GET /login") => {
@@ -119,30 +118,34 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
             println!("Route: Welcome Landlord......");
 
             if let Some(sid) = current_session_id {
-                let lock = sessions.lock()
-                    .unwrap();
+                let lock = sessions.lock().unwrap();
 
                 if let Some(landlord_uuid) = lock.get(&sid) {
-                    let (rows, c_options, b_options) = landlord::manage_buildings
-                        (*landlord_uuid).unwrap();
+                    let (rows, c_options, b_options) =
+                        landlord::manage_buildings(*landlord_uuid).unwrap();
 
-                    let mut html = fs::read_to_string
-                        ("landlord.html").unwrap();
+                    let mut html = fs::read_to_string("landlord.html").unwrap();
 
                     html = html.replace(" {{BUILDING_ROWS}}", &rows);
                     html = html.replace("{{CARETAKER_OPTIONS}}", &c_options);
                     html = html.replace("{{BUILDINGS}}", &b_options);
 
-                    let response = format!("HTTP/1.1 200 OK
+                    let response = format!(
+                        "HTTP/1.1 200 OK
                         \r\nContent-Type: text/html\r\nContent-Length: {}
-                        \r\n\r\n{}",html.len(), html
-                        );
+                        \r\n\r\n{}",
+                        html.len(),
+                        html
+                    );
 
                     stream.write_all(response.as_bytes()).unwrap();
                 } else {
-                    stream.write_all
-                        (b"HTTP/1.1 303 See Other\r\nLocation: /login
-                         \r\n\r\n").unwrap();
+                    stream
+                        .write_all(
+                            b"HTTP/1.1 303 See Other\r\nLocation: /login
+                         \r\n\r\n",
+                        )
+                        .unwrap();
                 }
             }
             serve_static_file("landlord.html", "text/html", stream);
@@ -157,50 +160,47 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
                         let response = "HTTP/1.1 303 See Other\r\nLocation: /landlord\r\n\r\n";
                         stream.write_all(response.as_bytes()).unwrap();
                     }
-                },
+                }
                 Err(e) => println!("Extraction failed: {}", e),
             }
         }
 
         line if line.starts_with("POST /caretaker/assign_tenant") => {
-
             println!("DEBUG: {}", body_str.to_string());
 
-            match extractor::extract_tenant_assign(body_str.to_string()){
-                Ok((unit_id,tenant_id)) => {
-
+            match extractor::extract_tenant_assign(body_str.to_string()) {
+                Ok((unit_id, tenant_id)) => {
                     if let Ok(_) = db::assign_tenant_to_unit(unit_id, tenant_id) {
                         let response = "HTTP/1.1 303 See Other\r\nLocation: /caretaker\r\n\r\n";
                         stream.write_all(response.as_bytes()).unwrap();
                     }
-                },
+                }
                 Err(e) => println!("Extraction failed: {}", e),
             }
         }
 
         line if line.starts_with("GET /caretaker") => {
-
             println!("Routing: Welcome Caretaker...");
 
             if let Some(sid) = current_session_id {
-                let lock = sessions.lock()
-                    .unwrap();
+                let lock = sessions.lock().unwrap();
 
                 if let Some(caretaker_uuid) = lock.get(&sid) {
-
-                    match caretaker::build_dashboard(
-                        *caretaker_uuid) {
+                    match caretaker::build_dashboard(*caretaker_uuid) {
                         Ok(html) => {
                             let response = format!(
                                 "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
-                                html.len(), html
-                                );
+                                html.len(),
+                                html
+                            );
                             stream.write_all(response.as_bytes()).unwrap();
                             stream.flush().unwrap();
-                        },
+                        }
                         Err(e) => {
                             println!("Error loading caretaker dash: {}", e);
-                            stream.write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n").unwrap();
+                            stream
+                                .write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n")
+                                .unwrap();
                             stream.flush().unwrap();
                         }
                     }
@@ -231,7 +231,6 @@ fn handle_connection(mut stream: TcpStream, sessions: SessionStore) {
 }
 
 fn handle_signup(text: String, stream: &mut TcpStream) {
-
     print!("Handling... {}", text);
 
     let user = extractor::extract_data(text).unwrap();
@@ -243,9 +242,7 @@ fn handle_signup(text: String, stream: &mut TcpStream) {
     stream.write_all(response.unwrap().as_bytes()).unwrap();
 }
 
-fn handle_auth(text: String, stream: &mut TcpStream,
-    sessions: SessionStore) {
-
+fn handle_auth(text: String, stream: &mut TcpStream, sessions: SessionStore) {
     println!("Handling... {}", text);
 
     let user_result = extractor::data_for_auth(text);
@@ -265,8 +262,12 @@ fn handle_auth(text: String, stream: &mut TcpStream,
     }
 }
 
-fn handle_landlord(text: String, stream: &mut TcpStream,
-    sessions: SessionStore, raw_request: &str) {
+fn handle_landlord(
+    text: String,
+    stream: &mut TcpStream,
+    sessions: SessionStore,
+    raw_request: &str,
+) {
     println!("Handling Landlord Profile Update {}", text);
 
     let mut landlord_dto = extractor::extract_landlord(text).unwrap();
@@ -276,14 +277,17 @@ fn handle_landlord(text: String, stream: &mut TcpStream,
     landlord_dto.session_id = session_id;
 
     match landlord::update_landlord(landlord_dto, &sessions) {
-        Ok(response) => stream.write_all(response.as_bytes())
-            .unwrap(),
+        Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
         Err(e) => println!("Error: {}", e),
     }
 }
 
-fn handle_building(text: String, stream: &mut TcpStream,
-    sessions: SessionStore, raw_request: &str) {
+fn handle_building(
+    text: String,
+    stream: &mut TcpStream,
+    sessions: SessionStore,
+    raw_request: &str,
+) {
     println!("Handling...{}, registration", text);
 
     let mut building_dto = extractor::extract_building(text).unwrap();
@@ -295,14 +299,12 @@ fn handle_building(text: String, stream: &mut TcpStream,
     print!("Building has recieved session Id: {:?}", building_dto);
 
     match building::insert_building(building_dto, &sessions) {
-        Ok(response) => stream.write_all(response.as_bytes())
-            .unwrap(),
+        Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
         Err(e) => println!("Error: {:?}", e),
     }
 }
 
-fn handle_request(text: String, stream: &mut TcpStream, 
-    sessions: SessionStore, raw_request: &str) {
+fn handle_request(text: String, stream: &mut TcpStream, sessions: SessionStore, raw_request: &str) {
     println!("Request {} recieved.", text);
 
     let mut request_dto = extractor::extract_request(text);
@@ -313,14 +315,12 @@ fn handle_request(text: String, stream: &mut TcpStream,
     println!("Request {:?} recieved: ", request_dto);
 
     match request::send_request(request_dto, &sessions) {
-        Ok(response) => stream.write_all(response.as_bytes())
-            .unwrap(),
+        Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
         Err(e) => println!("Error: {:?}", e),
     }
 }
 
-fn handle_vacate(text: String, stream: &mut TcpStream, 
-    sessions: SessionStore, full_header: &str) {
+fn handle_vacate(text: String, stream: &mut TcpStream, sessions: SessionStore, full_header: &str) {
     println!("Handling, {}", text);
 
     let mut notice_dto = extractor::extract_notice(text);
@@ -331,11 +331,10 @@ fn handle_vacate(text: String, stream: &mut TcpStream,
 
     println!("DTO ready {:?}", notice_dto);
 
-   match notice::send_notice(notice_dto, &sessions) {
-       Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
-       Err(e) => println!("Error in notice module: {:?}", e),
-   }
-
+    match notice::send_notice(notice_dto, &sessions) {
+        Ok(response) => stream.write_all(response.as_bytes()).unwrap(),
+        Err(e) => println!("Error in notice module: {:?}", e),
+    }
 }
 
 fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream) {
@@ -344,7 +343,9 @@ fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream)
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: 
                 {content_type}\r\nContent-Length: {}\r\n\r\n{}",
-                content.len(), content);
+                content.len(),
+                content
+            );
 
             stream.write_all(response.as_bytes()).unwrap();
         }
@@ -355,3 +356,25 @@ fn serve_static_file(file_path: &str, content_type: &str, mut stream: TcpStream)
     }
 }
 
+fn handle_caretaker(
+    text: String,
+    stream: &mut TcpStream,
+    sessions: SessionStore,
+    full_headers: &str,
+) {
+    let mut caretaker_dto = extractor::extract_caretaker_detalis(text).unwrap();
+
+    let session_id = get_session_id(full_headers);
+
+    caretaker_dto.session_id = session_id;
+
+    match caretaker::update_table(caretaker_dto, sessions) {
+        Ok(response) => {
+            stream.write_all(response.as_bytes()).unwrap();
+            stream.flush().unwrap();
+        }
+        Err(e) => {
+            println!("ERROR IN CARETAKER TABLE: MODULE caretaker.rs {:?}", e);
+        }
+    }
+}
