@@ -30,6 +30,22 @@ impl Notice {
     }
 }
 
+#[derive(Debug)]
+pub struct DisplayNotice {
+    pub id: Uuid,
+    pub status: String,
+}
+
+#[derive(Debug)]
+pub struct CaretakerNotice {
+    pub id: Uuid,
+    pub tenant_id: Uuid,
+    pub notice_date: NaiveDate,
+    pub status: String,
+    pub unit_no: i32,
+    pub tenant_name: String,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct NoticeDto {
     pub id: Id,

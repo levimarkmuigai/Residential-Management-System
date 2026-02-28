@@ -11,11 +11,54 @@
 
   <div class="container">
     <header class="stats-header">
-      <div class="stats-item">URGENT: <span class="red-text">--</span></div>
-      <div class="stats-item">TASKS: --</div>
-      <div class="stats-item">VACANT: --</div>
-      <a href="#profile-section" class="profile-link" id="profile-link">PROFILE</a>
+        <button class="header-btn urgent" id="urgent-btn">
+            URGENT: <span>--</span>
+        </button>
+
+        <button class="header-btn tasks" id="tasks-btn">
+            TASKS: <span>--</span>
+        </button>
+
+        <button class="header-btn vacancies"> VACANCIES: <span>--</span></button>
+
+        <button class="header-btn profile" id="profile-btn">PROFILE</button>
     </header>
+
+    <div id="workstation-urgent" class="workstation hidden">
+        <h2 class="red-text"> URGENT TASKS </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>UNIT</th>
+                    <th>TENANT</th>
+                    <th>DESCRIPTIOM</th>
+                    <th>TIMESTAMP</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{urgent_rows}}
+            </tbody>
+        </table>
+    </div>
+
+      <div id="workstation-tasks" class="workstation hidden">
+        <h2> PENDING TASKS </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>UNIT</th>
+                    <th>TENANT</th>
+                    <th>DESCRIPTIOM</th>
+                    <th>TIMESTAMP</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{tasks_rows}}
+            </tbody>
+        </table>
+    </div>
 
      <section class="profile-panel hidden" id="profile-section">
       <h3> FILL IN WITH CORRECT DETAILS </h3>
@@ -35,69 +78,50 @@
     </section>
 
     <h2>ADMINISTRATION</h2>
-    <div class="management-section">
-        <h3>TENANT MOVE-IN</h3>
-        <form action="/caretaker/assign_tenant" method="POST">
-            <div class="field">
-                <label>AVAILABLE TENANTS</label>
-                <select name="tenant_id">
-                    {{TENANT_OPTIONS}}
-                </select>
-            </div>
+    <div class="admin-grid">
+        <div class="management-section">
+            <h3>ASSIGN UNIT</h3>
+            <form action="/caretaker/assign_tenant" method="POST">
+            {{assign_rows}}
+                <button type="submit" class="submit-btn">ASSIGN TENANT TO UNIT</button>
+            </form>
+        </div>
 
-            <div class="field">
-                <label>VACANT UNITS (IN YOUR BUILDING)</label>
-                <select name="unit_id">
-                    {{VACANT_UNITS}}
-                </select>
-            </div>
-
-            <button type="submit" class="submit-btn">ASSIGN TENANT TO UNIT</button>
-        </form>
+        <div class="management-section notices">
+            <h3>VACATION NOTICES</h3>
+            <table class="notice-table">
+                <thead>
+                    <tr>
+                        <th>TENANT</th>
+                        <th>UNIT</th>
+                        <th>EXIT DATE</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{notice_rows}}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <h2>PENDING ACTIONS</h2>
-
-    <main class="action-feed">
-      <div class="action-card maintenance">
-        <div class="card-info">
-          <span class="badge priority-badge">POWER</span>
-          <p>--</p> <small>--</small> 
-        </div>
-        <form action="http://127.0.0.1:8080/fix_request" method="POST">
-          <input type="hidden" name="id" value=""> 
-          <button type="submit" class="fix-btn">FIXED</button>
-        </form>
-      </div>
-
-      <div class="action-card vacation">
-        <div class="card-info">
-          <span class="badge status-badge">VALID</span>
-          <p>--</p> <small>--</small> 
-        </div>
-        <div class="btn-group">
-          <form action="http://127.0.0.1:8080/approve_v" method="POST">
-            <input type="hidden" name="id" value="">
-            <button type="submit" class="btn-blue">APPROVE</button>
-          </form>
-          <form action="http://127.0.0.1:8080/reject_v" method="POST">
-            <input type="hidden" name="id" value="">
-            <button type="submit" class="btn-red">REJECT</button>
-          </form>
-        </div>
-      </div>
-    </main> 
-  </div>
-
+   
   <script>
-    const link = document.getElementById('profile-link');
-    const section = document.getElementById('profile-section');
+    const setupToggle = (btnId, sectionId) => {
+        const btn = document.getElementById(btnId);
+        const section = document.getElementById(sectionId);
 
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      section.classList.toggle('hidden');
-      link.innerText = section.classList.contains('hidden') ? 'PROFILE' : 'CLOSE';
-    });
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.workstation, .profile-panel').forEach(s => {
+                if(s !== section) s.classList.add('hidden');
+            });
+            section.classList.toggle('hidden');
+        });
+    };
+
+    setupToggle('profile-btn', 'profile-section');
+    setupToggle('urgent-btn', 'workstation-urgent');
+    setupToggle('tasks-btn', 'workstation-tasks');
   </script>
 </body>
 </html>

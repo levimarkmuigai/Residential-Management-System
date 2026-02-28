@@ -16,12 +16,13 @@
     <div class="container">
         <header class="status-bar">
             <div class="stat-item">
-                <div class="status-dot green"></div> STATUS: <span>--</span>
+                <div class="status-dot green"></div>
+                <div class="label">PAYMENT STATUS: 
+                    <span class="value">--</span>
+                </div>
             </div>
 
-            <div class="stat-item">
-                <div class="status-dot yellow"></div>REQS: <span>--</span>
-            </div>
+            {{notice_div}}
         </header>
 
         <h1 class="main-title">WELCOME TO YOUR DASHBOARD</h1>
@@ -60,7 +61,7 @@
 
             <section id="maint-box" class="action-box hidden">
                 <h3>NEW REQUEST</h3>
-                <form action="http://127.0.0.1:8080/request" method="POST">
+                <form action="/maintenance_request" method="POST">
                     <label>CATEGORY</label>
                     <select name="issue_type">
                         <option value="general">General</option>
@@ -77,7 +78,7 @@
 
             <section id="vacate-box" class="action-box hidden">
                 <h3>VACATION NOTICE</h3>
-                <form action="http://127.0.0.1:8080/vacate" method="POST">
+                <form action="/vacation_notice" method="POST">
                     <label>MOVE-OUT DATE</label>
                     <input type="date" name="exit_date">
 
@@ -88,17 +89,23 @@
             </section>
 
         </main>
-
-        <section class="status-zone">
-            <h3>REQUEST STATUS</h3>
-            <div class="status-card">
-                <div class="card-left">
-                    <span class="issue-id">#--</span>
-                    <span class="issue-name">--</span>
-                </div>
-                <span class="status-badge">--</span>
+        <section class="logs">
+            <h3> LOGS</h3>
+            <div class="table-container">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th class="type">ISSUE</th>
+                            <th class="desc">DESCRIPTION</th>
+                            <th class="date">TIMESTAMP</th>
+                            <th class="status">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{rows}} 
+                    </tbody>
+                </table>
             </div>
-            <p class="empty-msg hidden">NO ACTIVE REQUEST FOUND</p>
         </section>
     </div>
 

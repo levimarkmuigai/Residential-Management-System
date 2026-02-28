@@ -1,4 +1,4 @@
-use std::{error::Error, io::Write, net::TcpStream};
+use std::{error::Error, fs, io::Write, net::TcpStream};
 
 use crate::{
     db,
@@ -40,35 +40,51 @@ pub fn get_dash(
     stream: &mut TcpStream,
     header: &str,
 ) -> Result<(), Box<dyn Error>> {
-    if let Some(sid) = get_session_id(header) {
-        let lock = sessions.lock().map_err(|_| "FAILED TO LOCK SESSIONS")?;
+    let user_id = get_session_id(header).and_then(|sid| {
+        let lock = sessions
+            .lock()
+            .unwrap_or_else(|poison_error| poison_error.into_inner());
+        lock.get(&sid).copied()
+    });
 
-        if let Some(id) = lock.get(&sid) {
-            match caretaker::build_dashboard(*id) {
-                Ok(html) => {
-                    let response = format!(
-                        "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
-                        html.len(),
-                        html
-                    );
+    if let Some(id) = user_id {
+        match caretaker::build_dashboard(id) {
+            Ok(data) => {
+                let (a_rows, n_rows, u_rows, t_rows) = data;
 
-                    stream.write_all(response.as_bytes())?;
-                    stream.flush()?;
-                }
-                Err(e) => {
-                    eprintln!("ERROR LOADING CARETAKER DASHBOARD: {}", e);
+                let mut html = fs::read_to_string("caretaker.html")?;
 
-                    stream.write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n")?;
-                    stream.flush()?;
-                }
+                html = html.replace("{{urgent_rows}}", &u_rows);
+
+                html = html.replace("{{tasks_rows}}", &t_rows);
+
+                html = html.replace("{{assign_rows}}", &a_rows);
+
+                html = html.replace("{{notice_rows}}", &n_rows);
+
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-type: text/html\r\nContent-length: {}\r\n\r\n{}",
+                    html.len(),
+                    html
+                );
+
+                stream.write_all(response.as_bytes())?;
+                stream.flush()?;
             }
+            Err(e) => {
+                eprintln!("CRITICAL ERROR in build_dashboard: {:?}", e);
 
-            return Ok(());
+                let error_html =
+                    "HTTP/1.1 500 Internal Server Error\r\n\r\nDashboard generation failed.";
+                let _ = stream.write_all(error_html.as_bytes());
+                let _ = stream.flush();
+
+                return Err(e);
+            }
         }
+    } else {
+        stream.write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n")?;
     }
-
-    stream.write_all(b"HTTP/1.1 303 See Other\r\nLocation: /login\r\n\r\n")?;
-    stream.flush()?;
     Ok(())
 }
 

@@ -37,7 +37,7 @@ pub fn save(user: User) -> Result<(), String> {
     match role {
         "Landlord" => transaction.execute(
             "
-                INSERT INTO landlords(user_id, business_name) VALUES($1)",
+                INSERT INTO landlords(user_id, business_name) VALUES($1,$2)",
             &[&id, &"Pending Update"],
         ),
 

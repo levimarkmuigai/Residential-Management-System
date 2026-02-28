@@ -1,3 +1,6 @@
+use std::error::Error;
+
+use chrono::NaiveDateTime;
 use uuid::Uuid;
 
 use crate::{db, server::server::SessionStore, user::fields::Id};
@@ -21,15 +24,11 @@ impl Request {
         Self {
             id: Id::from(id),
             tenant_id: Id::from(tenant_id),
-            issue_type: issue_type,
-            description: description,
-            priority: priority,
+            issue_type,
+            description,
+            priority,
             status: "pending".to_string(),
         }
-    }
-
-    pub fn mark_resolved(&mut self) {
-        self.status = "resolved".to_string();
     }
 }
 
@@ -45,14 +44,39 @@ impl RequestDto {
     pub fn new(id: Uuid, issue_type: String, desc: String) -> Self {
         Self {
             id: Id::from(id),
-            issue_type: issue_type,
-            desc: desc,
+            issue_type,
+            desc,
             session_id: None,
         }
     }
 }
 
-pub fn send_request(request_dto: RequestDto, sessions: &SessionStore) -> Result<String, String> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct DbRequest {
+    pub id: Uuid,
+    pub tenant_id: Uuid,
+    pub unit_id: Uuid,
+    pub issue_type: String,
+    pub description: String,
+    pub priority: String,
+    pub status: String,
+    pub submitted_at: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CaretakerTask {
+    pub id: Uuid,
+    pub unit_no: i32,
+    pub tenant_name: String,
+    pub description: String,
+    pub timestamp: NaiveDateTime,
+    pub status: String,
+}
+
+pub fn send_request(
+    request_dto: RequestDto,
+    sessions: &SessionStore,
+) -> Result<String, Box<dyn Error>> {
     let session_id = request_dto.session_id.ok_or("Session Id not found")?;
 
     let tenant_uuid = {
@@ -70,19 +94,26 @@ pub fn send_request(request_dto: RequestDto, sessions: &SessionStore) -> Result<
 
     println!("Attempting to insert into database...");
 
-    db::tenant::send_request(request)?;
+    match db::tenant::send_request(request) {
+        Ok(_) => {
+            println!("Request sent to Database");
 
-    println!("Request sent to Database");
+            let status_line = "HTTP/1.1 303 See Other";
 
-    let status_line = "HTTP/1.1 303 See Other";
+            let location = "Location: /tenant";
 
-    let location = "Location: /tenant";
-
-    let response = format!(
-        "{}\r\n{}\r\nContent-length: 0
+            let response = format!(
+                "{}\r\n{}\r\nContent-length: 0
             \r\nConnection: close\r\n\r\n",
-        status_line, location
-    );
+                status_line, location
+            );
 
-    Ok(response)
+            Ok(response)
+        }
+        Err(e) => {
+            eprint!("FATAL ERROR: {:?}", e);
+
+            return Err(e);
+        }
+    }
 }

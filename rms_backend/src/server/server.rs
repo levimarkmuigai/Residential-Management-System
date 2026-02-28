@@ -101,6 +101,9 @@ pub fn handle_connection(mut stream: TcpStream, sessions: SessionStore) -> Resul
             "/caretaker" => {
                 let _ = caretaker::get_dash(&sessions, &mut stream, &header);
             }
+            "/tenant" => {
+                let _ = tenant::get_dash(&sessions, &mut stream, &header);
+            }
             p if p.ends_with(".css") => {
                 let _ = serve_file(p.trim_start_matches('/'), "text/css", stream);
             }
@@ -115,7 +118,7 @@ pub fn handle_connection(mut stream: TcpStream, sessions: SessionStore) -> Resul
             "/login" => {
                 let _ = login::login(body, &mut stream, &sessions);
             }
-            "/register_bulding" => {
+            "/register_building" => {
                 let _ =
                     building::handle_building_registration(body, &mut stream, &sessions, &header);
             }
@@ -135,7 +138,7 @@ pub fn handle_connection(mut stream: TcpStream, sessions: SessionStore) -> Resul
             "/maintenance_request" => {
                 let _ = tenant::handle_maintenance_request(body, &mut stream, &sessions, &header);
             }
-            "/vaction_notice" => {
+            "/vacation_notice" => {
                 let _ = tenant::handle_vacation_notice(body, &mut stream, &sessions, &header);
             }
 
