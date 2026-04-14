@@ -113,7 +113,7 @@ pub fn send_request(
         Err(e) => {
             eprint!("FATAL ERROR: {:?}", e);
 
-            return Err(e);
+            Err(e)
         }
     }
 }

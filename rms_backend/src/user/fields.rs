@@ -1,47 +1,38 @@
 use uuid::Uuid;
 
 use argon2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHasher,
-        SaltString
-    },
-    Argon2
+    Argon2,
+    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Id{
+pub struct Id {
     pub id: Uuid,
 }
 
 impl Id {
-
     pub fn new() -> Uuid {
         Uuid::new_v4()
     }
 
-    pub fn value(&self)  -> &Uuid {
+    pub fn value(&self) -> &Uuid {
         &self.id
     }
 }
 
 impl From<Uuid> for Id {
-
     fn from(id: Uuid) -> Id {
-        Id{id}
+        Id { id }
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Name{
-
+pub struct Name {
     pub raw: String,
 }
 
 impl Name {
-
     pub fn value(&self) -> &str {
-
         &self.raw
     }
 }
@@ -56,21 +47,19 @@ impl TryFrom<String> for Name {
             return Err("ℕame is empty");
         }
 
-        Ok(Self{ 
+        Ok(Self {
             raw: value_trimmed.to_string(),
         })
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Role{
+pub struct Role {
     pub raw: String,
 }
 
 impl Role {
-
     pub fn value(&self) -> &str {
-
         &self.raw
     }
 }
@@ -85,21 +74,19 @@ impl TryFrom<String> for Role {
             return Err("Role is empty");
         }
 
-        Ok(Self{ 
+        Ok(Self {
             raw: value_trimmed.to_string(),
         })
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Email{
+pub struct Email {
     pub raw: String,
 }
 
 impl Email {
-
     pub fn value(&self) -> &str {
-
         &self.raw
     }
 }
@@ -114,7 +101,7 @@ impl TryFrom<String> for Email {
             return Err("Email is empty");
         }
 
-        Ok(Self{ 
+        Ok(Self {
             raw: value_trimmed.to_string(),
         })
     }
@@ -126,9 +113,7 @@ pub struct PhoneNumber {
 }
 
 impl PhoneNumber {
-
     pub fn value(&self) -> &str {
-
         &self.raw
     }
 }
@@ -143,7 +128,7 @@ impl TryFrom<String> for PhoneNumber {
             return Err("Phone number is empty");
         }
 
-        Ok(Self{ 
+        Ok(Self {
             raw: value_trimmed.to_string(),
         })
     }
@@ -155,9 +140,7 @@ pub struct Password {
 }
 
 impl Password {
-
     pub fn new(password: String) -> Result<String, String> {
-
         let password_trimmed = password.trim();
 
         if password_trimmed.is_empty() {
@@ -176,7 +159,6 @@ impl Password {
             .to_string();
 
         Ok(hashed_password)
-
     }
 
     pub fn value(&self) -> &str {
@@ -194,9 +176,8 @@ impl TryFrom<String> for Password {
             return Err("Password is empty");
         }
 
-        Ok(Self{
+        Ok(Self {
             raw: value_trimmed.to_string(),
         })
     }
 }
-

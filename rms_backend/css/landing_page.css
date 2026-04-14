@@ -1,58 +1,181 @@
-body {
-  font-family: 'Press Start 2P', cursive;
-  background-color: #212529;
-  cursor: pointer;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
+:root {
+  --border-shadow: 0 0% 0%;
 }
 
-.container {
-  background: #FFFFFF;
-  padding: 30px;
-  border: 6px solid #000000;
+* {
+  font-family: 'Inter', sans-serif;
+}
 
-  width: 500px;
-  min-height: auto;
-  box-shadow: 10px 10px 0px #000000;
+body {
+  background: #E8E3E6;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
 
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: space-between;
+  max-width: 730px;
+  min-height: 375px;
+  margin: auto;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
+  border-radius: 32px;
+}
+
+.introduction {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
+  border-radius: 20px;
 }
 
-h3 {
-  font-size: 18px;
+,introduction h3 {
   text-align: center;
-  margin-top: 0;
-  color: #000;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .button-group {
   display: flex;
-  width: 100%;
-  justify-content: center;
-  gap: 15px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
 }
 
-button {
-  width: 150px;
-  padding: 12px;
-  border: 4px solid #000;
-  color: white;
-  height: 70px;
+#signup, #login {
+  background: #E8E3E6;
+  max-width: 175px;
+  padding:12px;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
   cursor: pointer;
-  font-family: 'Press Start 2P', cursive;
-  background-color: #20c997;
-  transition: transform 0.1s;
+  transition: transform 300ms ease-out;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 12px;
 }
 
-button:active {
-  box-shadow: 2px 2px 0px #000;
-  transform: translate(2px, 2px);
+#signup:active, #login:active{
+  transform: scale(0.95);
 }
 
+#signup-modal, #login-modal {
+  display: flex;
+  background: rgba(232,227,230,0.6);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.card-hidden {
+  opacity: 0;
+  transform: translateY(32px) scale(0.95);
+  pointer-events: none;
+}
+
+.card-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.signup-card, .login-card {
+  display: flex;
+  flex-direction: column;
+  background: #f3f3f3;
+  max-width: 450px;
+  width: 100%;
+  opacity: 100%;
+  padding: 16px;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
+  border-radius: 20px;
+}
+
+.form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.15rem 0;
+}
+
+.form-group legend {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.input-row, .input-container {
+  flex: 1;
+}
+
+label, .label-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
+  border-radius: 6px;
+  font-size: 16px;
+  transition: transform 300ms ease-in-out;
+}
+
+input:active {
+  transform: scale(0.95);
+}
+
+input:focus {
+  outline: none;
+}
+
+.form-button {
+  background: #f6f6f6;
+  width: 100%;
+  padding:12px;
+  border: 1px solid hsl(var(--border-shadow) / 10%);
+  cursor: pointer;
+  transition: transform 300ms ease-out;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 10px;
+}
+
+.form-button:active {
+  transform: scale(0.95);
+}

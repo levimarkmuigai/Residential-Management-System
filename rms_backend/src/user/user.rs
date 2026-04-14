@@ -1,14 +1,6 @@
-use crate::user::fields::{
-    Id,
-    Name,
-    Role,
-    Email,
-    PhoneNumber,
-    Password
-};
+use crate::user::fields::{Email, Id, Name, Password, PhoneNumber, Role};
 
 use uuid::Uuid;
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct User {
@@ -22,7 +14,6 @@ pub struct User {
 }
 
 impl User {
-
     pub fn new(
         id: Uuid,
         first_name: String,
@@ -53,13 +44,10 @@ pub struct UserCredentials {
 }
 
 impl UserCredentials {
-
-    pub fn new(email: String,password: String) -> Result<UserCredentials, String> {
-
+    pub fn new(email: String, password: String) -> Result<UserCredentials, String> {
         Ok(Self {
             email: Email::try_from(email)?,
             password: Password::try_from(password)?,
         })
     }
 }
-
