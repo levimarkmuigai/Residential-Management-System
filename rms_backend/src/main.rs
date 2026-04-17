@@ -1,12 +1,10 @@
 pub mod db;
 pub mod entities;
-pub mod ops;
 pub mod server;
+pub mod services;
 pub mod user;
 
 use std::error::Error;
-
-use dotenvy;
 
 fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv().ok();

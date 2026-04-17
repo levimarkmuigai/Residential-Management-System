@@ -1,6 +1,6 @@
-/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/rms_backend-8144035952f66bc5.d: src/main.rs src/db/mod.rs src/db/building.rs src/db/caretaker.rs src/db/landlord.rs src/db/tenant.rs src/db/user.rs src/db/utils.rs src/entities/mod.rs src/entities/building.rs src/entities/caretaker.rs src/entities/landlord.rs src/entities/notice.rs src/entities/request.rs src/entities/tenant.rs src/ops/mod.rs src/ops/extractor/mod.rs src/ops/extractor/auth.rs src/ops/extractor/building.rs src/ops/extractor/caretaker.rs src/ops/extractor/landlord.rs src/ops/extractor/notice.rs src/ops/extractor/request.rs src/ops/login.rs src/ops/signup.rs src/server/mod.rs src/server/building.rs src/server/caretaker.rs src/server/landlord.rs src/server/login.rs src/server/notice.rs src/server/request.rs src/server/server.rs src/server/signup.rs src/server/tenant.rs src/user/mod.rs src/user/fields.rs src/user/user.rs Cargo.toml
+/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/rms_backend-8144035952f66bc5.d: src/main.rs src/db/mod.rs src/db/building.rs src/db/caretaker.rs src/db/landlord.rs src/db/tenant.rs src/db/user.rs src/db/utils.rs src/entities/mod.rs src/entities/building.rs src/entities/caretaker.rs src/entities/landlord.rs src/entities/notice.rs src/entities/request.rs src/entities/tenant.rs src/server/mod.rs src/server/extractors/mod.rs src/server/extractors/auth.rs src/server/extractors/building.rs src/server/extractors/caretaker.rs src/server/extractors/landlord.rs src/server/extractors/notice.rs src/server/extractors/request.rs src/server/handlers/mod.rs src/server/handlers/building.rs src/server/handlers/caretaker.rs src/server/handlers/landlord.rs src/server/handlers/login.rs src/server/handlers/notice.rs src/server/handlers/request.rs src/server/handlers/signup.rs src/server/handlers/tenant.rs src/server/server.rs src/services/mod.rs src/services/auth.rs src/user/mod.rs src/user/fields.rs src/user/user.rs Cargo.toml
 
-/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/librms_backend-8144035952f66bc5.rmeta: src/main.rs src/db/mod.rs src/db/building.rs src/db/caretaker.rs src/db/landlord.rs src/db/tenant.rs src/db/user.rs src/db/utils.rs src/entities/mod.rs src/entities/building.rs src/entities/caretaker.rs src/entities/landlord.rs src/entities/notice.rs src/entities/request.rs src/entities/tenant.rs src/ops/mod.rs src/ops/extractor/mod.rs src/ops/extractor/auth.rs src/ops/extractor/building.rs src/ops/extractor/caretaker.rs src/ops/extractor/landlord.rs src/ops/extractor/notice.rs src/ops/extractor/request.rs src/ops/login.rs src/ops/signup.rs src/server/mod.rs src/server/building.rs src/server/caretaker.rs src/server/landlord.rs src/server/login.rs src/server/notice.rs src/server/request.rs src/server/server.rs src/server/signup.rs src/server/tenant.rs src/user/mod.rs src/user/fields.rs src/user/user.rs Cargo.toml
+/home/levi/Prototypes/Residential-Management-System/rms_backend/target/debug/deps/librms_backend-8144035952f66bc5.rmeta: src/main.rs src/db/mod.rs src/db/building.rs src/db/caretaker.rs src/db/landlord.rs src/db/tenant.rs src/db/user.rs src/db/utils.rs src/entities/mod.rs src/entities/building.rs src/entities/caretaker.rs src/entities/landlord.rs src/entities/notice.rs src/entities/request.rs src/entities/tenant.rs src/server/mod.rs src/server/extractors/mod.rs src/server/extractors/auth.rs src/server/extractors/building.rs src/server/extractors/caretaker.rs src/server/extractors/landlord.rs src/server/extractors/notice.rs src/server/extractors/request.rs src/server/handlers/mod.rs src/server/handlers/building.rs src/server/handlers/caretaker.rs src/server/handlers/landlord.rs src/server/handlers/login.rs src/server/handlers/notice.rs src/server/handlers/request.rs src/server/handlers/signup.rs src/server/handlers/tenant.rs src/server/server.rs src/services/mod.rs src/services/auth.rs src/user/mod.rs src/user/fields.rs src/user/user.rs Cargo.toml
 
 src/main.rs:
 src/db/mod.rs:
@@ -17,26 +17,26 @@ src/entities/landlord.rs:
 src/entities/notice.rs:
 src/entities/request.rs:
 src/entities/tenant.rs:
-src/ops/mod.rs:
-src/ops/extractor/mod.rs:
-src/ops/extractor/auth.rs:
-src/ops/extractor/building.rs:
-src/ops/extractor/caretaker.rs:
-src/ops/extractor/landlord.rs:
-src/ops/extractor/notice.rs:
-src/ops/extractor/request.rs:
-src/ops/login.rs:
-src/ops/signup.rs:
 src/server/mod.rs:
-src/server/building.rs:
-src/server/caretaker.rs:
-src/server/landlord.rs:
-src/server/login.rs:
-src/server/notice.rs:
-src/server/request.rs:
+src/server/extractors/mod.rs:
+src/server/extractors/auth.rs:
+src/server/extractors/building.rs:
+src/server/extractors/caretaker.rs:
+src/server/extractors/landlord.rs:
+src/server/extractors/notice.rs:
+src/server/extractors/request.rs:
+src/server/handlers/mod.rs:
+src/server/handlers/building.rs:
+src/server/handlers/caretaker.rs:
+src/server/handlers/landlord.rs:
+src/server/handlers/login.rs:
+src/server/handlers/notice.rs:
+src/server/handlers/request.rs:
+src/server/handlers/signup.rs:
+src/server/handlers/tenant.rs:
 src/server/server.rs:
-src/server/signup.rs:
-src/server/tenant.rs:
+src/services/mod.rs:
+src/services/auth.rs:
 src/user/mod.rs:
 src/user/fields.rs:
 src/user/user.rs:

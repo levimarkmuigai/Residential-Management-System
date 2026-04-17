@@ -9,7 +9,7 @@ use std::{
 
 use uuid::Uuid;
 
-use crate::server::{building, caretaker, landlord, login, signup, tenant};
+use crate::server::handlers::{building, caretaker, landlord, login, signup, tenant};
 
 pub type SessionStore = Arc<Mutex<HashMap<String, Uuid>>>;
 
