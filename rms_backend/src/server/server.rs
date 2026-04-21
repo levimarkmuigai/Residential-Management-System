@@ -92,9 +92,24 @@ pub fn handle_connection(mut stream: TcpStream, sessions: SessionStore) -> Resul
 
     match method.as_str() {
         "GET" => match path.as_str() {
-            "/login" => {
-                let _ = serve_file("login.html", "text/html", stream);
-            }
+            "/" => match fs::read_to_string("templates/index.html") {
+                Ok(contents) => {
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}",
+                        contents.len(),
+                        contents
+                    );
+
+                    if let Err(e) = stream.write_all(response.as_bytes()) {
+                        eprintln!("Failed to send response: {}", e);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error reading index.html: {}", e);
+                    let not_found = "HTTP/1.1 404 NOT FOUND\r\n\r\nFile not found";
+                    let _ = stream.write_all(not_found.as_bytes());
+                }
+            },
             "/landlord" => {
                 let _ = landlord::get_dash(&sessions, &mut stream, &header);
             }
@@ -106,6 +121,9 @@ pub fn handle_connection(mut stream: TcpStream, sessions: SessionStore) -> Resul
             }
             p if p.ends_with(".css") => {
                 let _ = serve_file(p.trim_start_matches('/'), "text/css", stream);
+            }
+            p if p.ends_with(".js") => {
+                let _ = serve_file(p.trim_start_matches('/'), "text/javascript", stream);
             }
 
             _ => println!("404 GET not found {}", path),

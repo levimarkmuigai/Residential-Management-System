@@ -20,9 +20,9 @@ pub fn signup(user: User) -> Result<String, String> {
 
     let status_line = "HTTP/1.1 303 See Other";
 
-    let location = "Location: /login";
+    let location = "/";
 
-    let response = format!("{status_line}\r\n{location}\r\n\r\n");
+    let response = format!("{status_line}\r\nLocation: {location}\r\n\r\n");
 
     Ok(response)
 }

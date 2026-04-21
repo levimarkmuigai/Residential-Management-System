@@ -14,11 +14,11 @@ pub fn user_data(body: String) -> Result<User, String> {
     for pair in body.split("&") {
         if let Some((key, value)) = pair.split_once("=") {
             match key {
-                "first_name" => {
+                "first-name" => {
                     first_name_buffer = value.to_string();
                 }
 
-                "last_name" => {
+                "last-name" => {
                     last_name_buffer = value.to_string();
                 }
 
@@ -30,7 +30,7 @@ pub fn user_data(body: String) -> Result<User, String> {
                     email_buffer = value.to_string().replace("%40", "@");
                 }
 
-                "phone_number" => {
+                "number" => {
                     phone_number_buffer = value.to_string();
                 }
 
