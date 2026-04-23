@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="/static/css/landlord.css" rel="stylesheet">
+  </head>
+  <body>
+    <aside>
+      <div class="aside-items">
+        <button type="" id="profile-btn">profile</button>
+        <a href="templates/buildings.html">buildings</a>
+      </div>
+    </aside>
+    <div class="dash-container">
+      <header class="dash-header">
+        <h1 class="page-title">portfolio overview</h1>
+        <span class="date-stamp">april 2026</span>
+      </header>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">collected revenue</span>
+          <span class="kpi-value">ksh 450,000</span>
+          <span class="kpi-context">expected: ksh 500,000</span>
+        </div>
+
+         <div class="kpi-card">
+          <span class="kpi-label">active occupancy</span>
+          <span class="kpi-value">92%</span>
+          <span class="kpi-context">4 vacant units</span>
+        </div>
+
+         <div class="kpi-card">
+          <span class="kpi-label">total arrears</span>
+          <span class="kpi-value">ksh 50,000</span>
+          <span class="kpi-context">across 2 tenants</span>
+        </div>
+      </div>
+
+      <div class="triage-section">
+         <div class="triage-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">open requests</h2>
+            <a href="/templates/maintenance.html" class="panel-link">view all</a>
+          </div>
+
+          <div class="list-container">
+            <div class="list-row list-headers">
+              <span class="col-main">issue</span>
+              <span class="col-sub">unit</span>
+              <span class="col-sub">status</span>
+              <span class="col-amount">age</span>
+            </div>
+
+            <div class="list-row">
+              <span class="col-main">water heater leak</span>
+              <span class="col-sub">kileleshwa -2a</span>
+              <span class="col-sub">pending</span>
+              <span class="col-amount">2 days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-modal" class="card-hidden">
+      <div class="profile-card">
+        <form id="profile-form" action="/landlord_profile" method="POST">
+          <fieldset class="form-group">
+            <legend>Personal Details</legend>
+            <div class="input-row">
+              <div class="input-container">
+                <label for="update-fname">First Name</label>
+                <input type="text" id="update-fname" name="first-name">
+
+                <span id="update-fname-error" class="error-message"></span>
+              </div>
+              <div class="input-container">
+                <label for="update-lname">Last Name</label>
+                <input type="text" id="update-lname" name="last-name">
+
+                <span id="update-lname-error" class="error-message"></span>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="form-group">
+            <legend>Contacts</legend>
+            <div class="input-row">
+              <div class="input-container">
+                <label for="update-email">Email</label>
+                <input type="text" id="update-email" name="email">
+
+                <span id="update-email-error" class="error-message"></span>
+              </div>
+              <div class="input-container">
+                <label for="update-number">Number</label>
+                <input type="text" id="update-number" name="number" placeholder="07XXXXXXXX">
+
+                <span class="error-message" id="update-number-error"></span>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="form-group">
+            <legend>Credentials</legend>
+            <div class="input-container">
+              <label for="update-password">Password</label>
+              <input type="password" id="update-password" name="password">
+
+              <span class="error-message" id="update-password-error"></span>
+            </div>
+          </fieldset>
+          <button type="submit" class="form-button">Update Account</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="../static/js/main.js"></script>
+  </body>
+</html>

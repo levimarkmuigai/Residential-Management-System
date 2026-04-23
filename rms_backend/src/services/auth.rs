@@ -35,7 +35,7 @@ pub fn login(user: UserCredentials, sessions: &SessionStore) -> Result<String, S
 
     let db_password_hash = user.password.value();
 
-    let parsed_hash = PasswordHash::new(&db_password_hash)
+    let parsed_hash = PasswordHash::new(db_password_hash)
         .map_err(|e| format!("Invalid hash format in DB: {}", e))?;
 
     if Argon2::default()

@@ -1,19 +1,13 @@
-export const closeModal = (cardElement) => {
-  cardElement.classList.remove('card-visible');
-  cardElement.classList.add('card-hidden');
-}
+import { closeModal, openModal } from "./utils/modal.js";
 
-export const openModal = (cardElement) => {
-  cardElement.classList.remove('card-hidden');
-  cardElement.classList.add('card-visible');
-}
-
-export const initModal = () => {
+export const initAuthModals = () => {
   const signupBtn = document.getElementById('signup');
   const signupId = document.getElementById('signup-modal');
 
   const loginBtn = document.getElementById('login');
   const loginId = document.getElementById('login-modal');
+
+  if (!signupBtn || !loginBtn) return;
 
   signupBtn.addEventListener('click', () => {
     console.log("Button clicked");
@@ -43,5 +37,5 @@ export const initModal = () => {
       closeModal(loginId);
       closeModal(signupId);
     }
-  })
-}
+  });
+};
